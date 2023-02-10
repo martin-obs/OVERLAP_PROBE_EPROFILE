@@ -1,0 +1,25 @@
+constants needed by overlap correction code
+
+time_interval_length, 30
+d_fit_time,5
+max_fit_range,1200
+min_fit_length,150
+min_range_std_over_mean,225
+dt_sliding_variance,10
+max_std_over_mean,0.015 
+max_relgrad,0.08
+max_relgrad_mean,0.025
+min_expected_zero_fit_value,4.75
+max_expected_zero_fit_value, 6
+thresh_resid_rel,0.0005
+thresh_resid_whole_zone,0.15
+thresh_overlap_valid_rel_error,0.01
+min_nb_ok_candidates,1
+max_overlap_value,1.01
+sgolay_width, 5
+sgolay_ord,3
+whiskers_length,3
+min_nb_samples,15
+good_samples_proportion,1.0
+min_nb_good_samples_after_outliers_removal,10
+min_nb_samples_for_skipping_good_test,100
