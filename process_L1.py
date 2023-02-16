@@ -70,9 +70,23 @@ class Eprofile_Reader ( object ) :
         self.sci = np.asarray ( L_nc.variables [ 'sci' ] [ : ] )
 
         self.rng_res = np.asarray ( L_nc.variables [ 'range_resol' ] [ : ] )
+        
+        self.inst_number = getattr ( L_nc , 'optical_module_id' )
 
 
     def get_constants ( self , config , ov ) :
+        
+        '''
+        
+        Read in a text file of settings / threshold values. Those that can be are 
+        
+        computed from a combination of other settings / data file dimentions. Currently 
+        
+        saved as a Pandas dataframe, this will be changed to a named tuple in future
+        
+        for easier access
+        
+        '''
 
         config_df = pd.read_csv ( config , sep = ',', skiprows = 1 , header = None )
 
@@ -110,6 +124,14 @@ class Eprofile_Reader ( object ) :
 
 
     def remove_some (self ) :
+        
+        '''
+        
+        This is a utility used during code development to ensure that the code 
+        
+        works with data files with missing profiles - please ignore
+        
+        '''
 
         li = [ *range (5, 100 ) , *range (1020,2010) ]
 
@@ -127,7 +149,7 @@ class Eprofile_Reader ( object ) :
 
         '''
 
-        The time stamp that comes with the data is in days ( now seconds )
+        The time stamp that comes with the data is in days ( now seconds  in L1 )
 
         since epoch and it is convenient to convert this into datetime
 
@@ -295,6 +317,12 @@ class Eprofile_Reader ( object ) :
             return 'failed grad check: X = ' + str ( round ( X , 3 ) ) + ' Y = ' + str ( round ( Y, 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 2 ] , 1 ) ) + 'm'
         
     def write_result_to_csv ( self ) : 
+        
+        '''
+        
+        Create results cvs and save to file
+        
+        '''
     
         times_df = pd.DataFrame(self.intervals, columns = ['start' , 'end'])
         
@@ -304,11 +332,13 @@ class Eprofile_Reader ( object ) :
         
         rng_df = pd.DataFrame ( self.rng_intervals , columns = ['rng lower','rng upper'])
         
-        results_df = pd.concat ( [ times_df , rng_df , self.ov_df ] , axis = 1)
-               
-        results_df.to_csv('results.csv',index=False)
+        results_df = pd.concat ( [ times_df , rng_df , self.ov_df ] , axis = 1 )
         
-        print (np.shape(results_df))
+        results_name = 'ov_results_' + self.inst_number + '_' + str ( self.dt[0].date ( ) ) + '.csv'
+               
+        results_df.to_csv ( results_name , index = False )
+        
+        print ( np.shape ( results_df ) )
 
           
     def get_final_overlapfunction (self) :
