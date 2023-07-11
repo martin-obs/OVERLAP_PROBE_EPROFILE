@@ -8,7 +8,7 @@
     
     for overlap correction. This is a translation / refactoring of code 
     
-    written by Maxime , Rolf Ruefenacht and Melania Van Hove in Matlab
+    written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove in Matlab
 
     @author martin osborne: martin.osborne@metoffice.gov.uk
 
@@ -22,9 +22,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
-from scipy.io import loadmat
 import more_itertools as mit
-import netCDF4 as nc
 
 #-------------------------------------------------------------------------------
 
@@ -218,43 +216,7 @@ class Temperature_model_builder ( object ) :
         
         self.daily_temp = np.asarray ( day_temp ) [ : ]
         
-        if use_matlab:
-            
-            self.daily_ovs = self.get_matlab_ovs ( '06' )
-            
-            self.daily_temp = np.asarray( [ 303.0000 , 300.0000 , 305.6500 , 306.0000 , 306.0833 , 311.8926 , 298.0000 ,
-                               304.6500 , 305.7083 ,310.6583 ,315.0000 , 315.7167, 310.9167, 313.1167,
-                               311.8083, 310.7667, 307.7167, 303.8000, 301.7333, 303.5417, 301.0000,
-                               303.0000, 299.6000,  306.0917, 310.0000, 301.7083, 307.0000 , 311.0000,
-                               311.8917 ] )
-
-    def get_matlab_ovs ( self , month  ) :
-
-        directory = '/scratch/mosborne/overlap_results/2022_melania/' + str ( month ) + '/'
-        
-        mat_files = [ f for f in np.sort ( os.listdir ( directory ) ) if 'result' in f ]
-        
-        good_m = np.zeros ( 1024 )
-        
-        for d in range ( 0 , len (mat_files)-1 ) : 
-        
-            print ( mat_files [ d ] )
-            
-            mat_dict  = loadmat ( directory + mat_files [ d ] )
-            
-            ovp_fc =  mat_dict [ 'result' ] [ 'ovp_fc' ] [0] [0] 
-            
-            index_final =  mat_dict [ 'result' ] [ 'index_final' ] [ 0 ] [ 0 ] [ : , 0 ]
-            
-            good = ovp_fc [ : , index_final-1 ]
-            
-            good = np.median ( ovp_fc [ : , index_final-1 ] , axis = 1 )
-            
-            good_m =np.vstack((good_m , good ))
-      
-        return good_m [ 1 : , : ]   
-
-    
+   
     def _create_daly_median ( self , df ) :
         
         ov = np.median ( np.asarray ( df.iloc [ : , 6: ] ) , axis = 0 )
@@ -372,15 +334,12 @@ class Temperature_model_builder ( object ) :
             idx = idx - 1
             
         self.end_ind = idx  
-        
-        
+                
     def do_regression_2 ( self ) :
         
         self._make_regresions_signals_2 ( )
         
-        self.alpha_2 , self.beta_2 , self.r2_2 = self._simple_linear_fit ( self.n_2 , self.A_2 , self.B_2 , axis = 0 )
-        
-        #self.beta_2 [ : 6 ] = 0
+        self.beta_2 , self.alpha_2 , self.r2_2 = self._simple_linear_fit ( self.n_2 , self.A_2 , self.B_2 , axis = 0 )
  
     def _make_regresions_signals_2 ( self ) :
          
@@ -389,24 +348,6 @@ class Temperature_model_builder ( object ) :
          self.A_2 = np.repeat (  ( self.daily_temp-273.15 )  [  : ,  np.newaxis  ] , len ( self.rng ) , axis = 1 ) [   : self.end_ind   , : ]
          
          self.n_2 = np.shape ( self.A_2 ) [ 0 ]
-                 
-
-            
-    def get_matlab_result ( self ) :
-         
-         ncfile = '/scratch/mosborne/overlap_results/TUB170006_15m_20220113_to_20221229.nc'
-         
-         #ncfile = '/scratch/mosborne/overlap_results/TUB170006_15m_20220113_to_20220729.nc'
-         
-         #ncfile = '/scratch/mosborne/overlap_results/TUB170006_15m_20220601_to_20221225.nc'
-         
-         matlab_result = nc.Dataset ( ncfile )
-     
-         self.alpha_m = matlab_result.variables [ 'a'] [ : ]
-         
-         self.beta_m = matlab_result.variables [ 'b' ] [ : ]
-         
-         
     
     def plot_regression_1 ( self ) :
         
@@ -434,8 +375,7 @@ class Temperature_model_builder ( object ) :
         ax.set_ylabel('R$^2$ values')
         fig.savefig('test.png',format='png', dpi=300)
         
-        
-        
+               
     def plot_regression_2 ( self ) :
         
         params = {'legend.fontsize': 8,
@@ -453,8 +393,7 @@ class Temperature_model_builder ( object ) :
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
         fig.set_size_inches(7,4)
         ax = plt.subplot(111)
-        ax.scatter( self.beta_2 , self.rng )       
-        ax.scatter( self.alpha_m , self.rng , color = 'r' , alpha = 0.5 )
+        ax.scatter( self.alpha_2 , self.rng )       
         ax.grid()
         ax.tick_params(direction="in",which="both")
         ax.set_xlabel('alpha')
