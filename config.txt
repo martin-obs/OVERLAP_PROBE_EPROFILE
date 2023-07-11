@@ -21,5 +21,8 @@ sgolay_ord,3
 whiskers_length,3
 min_nb_samples,15
 good_samples_proportion,1.0
-min_nb_good_samples_after_outliers_removal,10
+min_nb_good_samples_after_outliers_removal,20
 min_nb_samples_for_skipping_good_test,100
+thrsh_diff_r2,0.02
+number_samples,8
+

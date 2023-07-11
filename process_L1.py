@@ -17,7 +17,6 @@
 import numpy as np
 import netCDF4 as nc
 import datetime
-import matplotlib.dates as mdate
 import pandas as pd
 from scipy import stats
 
@@ -45,23 +44,21 @@ class Eprofile_Reader ( object ) :
 
         Class to hold ceilometer data for use with processing / plotting functions
 
-        Keyword arguments:
+        Args:
 
-            data_file1 = full path to a netCDF file containing L1 data on day 1
+            data_file = full path to a netCDF file containing an L1 file of CHM15k data
 
-            data_file12 = full path to a netCDF file containing L1 data on day +1
+        Returns:
 
-        OUTPUT:
-
-           Class containing L1 ceilometer data for use with lidar function methods
+           Class containing L1 ceilometer data for use with overlap methods
 
         '''
 
         L_nc = nc.Dataset( data_file )
 
-        self.time = 24.0 * 60.0 * 60.0 * np.asarray ( L_nc.variables [ 'time' ] [ : ] )
+        self.raw_time =  np.asarray ( L_nc.variables [ 'time' ] [ : ] ) 
 
-        self.rng = np.asarray ( L_nc.variables [ 'range' ] [ : ] )
+        self.rng = np.asarray ( L_nc.variables [ 'range' ] [ : ] , dtype = 'float64')
 
         self.rcs_0 = np.asarray ( L_nc.variables [ 'rcs_0' ] [ : , : ] )
 
@@ -71,7 +68,18 @@ class Eprofile_Reader ( object ) :
 
         self.rng_res = np.asarray ( L_nc.variables [ 'range_resol' ] [ : ] )
         
-        self.inst_number = getattr ( L_nc , 'optical_module_id' )
+        self.internal_temperature = np.asarray( L_nc.variables [ 'temp_int' ] [ : ] )
+        
+        self.opt_mod_number = getattr ( L_nc , 'optical_module_id' )
+        
+        self.site_location = getattr ( L_nc , 'site_location' )
+        
+        self.wigos_station_id = getattr ( L_nc , 'wigos_station_id' )
+        
+        self.instrument_id = getattr ( L_nc , 'instrument_id' ) 
+
+        self.instrument_serial_number = getattr ( L_nc , 'instrument_serial_number' ) 
+
 
 
     def get_constants ( self , config , ov ) :
@@ -97,6 +105,8 @@ class Eprofile_Reader ( object ) :
         config_df = config_df.drop ( config_df.index [ 0 ] )
 
         self.ov = np.asarray ( pd.read_csv ( ov , sep = '\t' , skiprows = 1 , header = None , nrows = 1 ) ) [ 0 ]
+        
+        self._check_ov_range_res_same_as_data ( )
 
         config_df [ 'd_fit_range' ] = np.rint ( self.rng_res )
 
@@ -122,6 +132,16 @@ class Eprofile_Reader ( object ) :
 
         self.config = config_df
 
+
+    def _check_ov_range_res_same_as_data (self):
+        
+        if len ( self.ov ) != len ( self.rng ) :
+            
+            ov_native_rng = np.arange ( 14.985 ,  15344.64+14.985 , 14.985 )
+            
+            self.ov = np.interp ( self.rng ,  ov_native_rng , self.ov )
+                    
+        return self.ov
 
     def remove_some (self ) :
         
@@ -149,28 +169,20 @@ class Eprofile_Reader ( object ) :
 
         '''
 
-        The time stamp that comes with the data is in days ( now seconds  in L1 )
+        The time stamp that comes with the data is in fractional days
 
         since epoch and it is convenient to convert this into datetime
 
-        objects and  matplotlib.date objects ( for plotting at some point )
+        objects
 
         '''
-
-        dt = []
-
-        Time = []
-
-        for i in range ( len ( self.time ) ) :
-
-            dt.append ( datetime.datetime.utcfromtimestamp ( self.time [ i ] ) )
-
-            Time.append ( mdate.date2num ( dt [ i ] ) )
-
-        self.Time = np.asarray ( Time )
-
-        self.dt = np.asarray ( dt )
-
+       
+        self.dt_raw = [ datetime.datetime ( 1970 , 1 , 1 ) + datetime.timedelta ( t ) for t in self.raw_time ]
+        
+        self.dt = np.asarray ( [ pd.to_datetime(t).round('1s') for t in self.dt_raw ]  )
+        
+        self.time = np.asarray ( [ t.timestamp() for t in self.dt ] ) 
+        
 
     def fill_gaps ( self ) :
 
@@ -261,13 +273,13 @@ class Eprofile_Reader ( object ) :
 
         '''
 
-        This does the actuall filling and is called with in "fill_missing_profiles" 
+        This does the actuall filling and is called within "fill_missing_profiles" 
 
-        Inputs:
+        Args:
 
             signal - 2d array of profiles
 
-            gaps - list of sizes for gaps
+            gaps - list of sizes of any gaps
 
             ind_list - list of indices where gaps are to be inserted
 
@@ -306,7 +318,7 @@ class Eprofile_Reader ( object ) :
 
         if ~checks [ 2 ] :
 
-            return  'lowest cloud base is ' + str ( round ( max_fit_ranges[0] , 1 ) ) , 'm should be ' + str ( self.config_df [ 'min_fit_range' ].values [ 0 ] ) + 'm'
+            return  'lowest cloud base is ' + str ( round ( max_fit_ranges[0] , 1 ) ) , 'm should be ' + str ( self.config [ 'min_fit_range' ].values [ 0 ] ) + 'm'
 
         if ~checks [ 3 ] :
 
@@ -324,43 +336,86 @@ class Eprofile_Reader ( object ) :
         
         '''
     
-        times_df = pd.DataFrame(self.intervals, columns = ['start' , 'end'])
+        times_df = pd.DataFrame ( self.intervals , columns = [ 'start' , 'end' ] )
         
         ov_columns = [ str ( r ) for r in self.rng ]
         
         self.ov_df = pd.DataFrame ( self.final_ovs , columns = ov_columns )
         
-        rng_df = pd.DataFrame ( self.rng_intervals , columns = ['rng lower','rng upper'])
+        rng_df = pd.DataFrame ( self.rng_intervals , columns = [ 'rng lower','rng upper' ] )
         
-        results_df = pd.concat ( [ times_df , rng_df , self.ov_df ] , axis = 1 )
+        temps = pd.DataFrame ( self.temperatures , columns = [ 'internal_temperature' ] )
         
-        results_name = 'ov_results_' + self.inst_number + '_' + str ( self.dt[0].date ( ) ) + '.csv'
+        temps [ 'range_resolution' ] = self.rng_res
+        
+        results_df = pd.concat ( [ times_df , rng_df , temps , self.ov_df  ] , axis = 1 )
+              
+        location =  self.site_location.split ( ',' ) [ 0 ]
                
-        results_df.to_csv ( results_name , index = False )
+        results_name = 'ov_results_' + location + '_' + self.opt_mod_number + '_' + str ( self.dt [ 0 ].date ( ) ) + '.csv'
+               
+        meta_data = [ 'opt_mod_number = ' + self.opt_mod_number ,'site_location = ' + self.site_location ,
+                     'wigos_station_id = ' + self.wigos_station_id , 'instrument_id = ' + self.instrument_id ,
+                     'instrument_serial_number = ' +  self.instrument_serial_number ]
+              
+        with open ( '/scratch/mosborne/overlap_results/' + location + '/' + results_name , 'w+' ) as f :
         
-        print ( np.shape ( results_df ) )
-
+            content = f.read ( )
+            
+            #f.seek ( 0 , 0 )
+            
+            for l in meta_data :
+            
+                f.write ( l.rstrip  ('\r\n' ) + '\n' + content )
+        
+        results_df.to_csv ( '/scratch/mosborne/overlap_results/' + location + '/' + results_name , mode = 'a' , index = False )
           
     def get_final_overlapfunction (self) :
         
-        self.intervals , self.rng_intervals , self.final_ovs , self.final_ov = srt.remove_failed ( self.results , self.passed_inds , self.rng , self.config)
+        if np.sum(self.passed_inds) != 0: 
         
-        self.write_result_to_csv()
+            self.intervals , self.rng_intervals , self.final_ovs , self.temperatures , self.final_ov = srt.remove_failed ( self.results , self.passed_inds , self.rng , self.config )
+            
+            self.write_result_to_csv ( )
+                
+
       
 
     def loop_over_time ( self , start = None , stop = None ) :
         
+        '''
+        
+        Loop through data with a window 'time_interval_length' wide and 
+        
+        shifting by 'd_fit_time' each loop. Because of issues comparing 
+        
+        datetimes, time deltas and timestamps created from fractional days
+        
+        since midnight, and also because the time stamp in the L1 file 
+        
+        wanders ( e.g. upto a second either side of 15s ) sometimes the window 
+        
+        length ends up one profile too short or too long. Therefore the 
+        
+        mode width is used to ensure all time windows are the same width 
+        
+        ( for example 120 profiles wide if 'time_interval_length' = 30 min 
+         
+         and time resolution is 15s )
+                        
+        '''
+                                          
         results = {}
 
-        if start == None or stop == None:
+        if start == None or stop == None :
 
             start = 0
 
             stop = -1
 
         dt = self.dt [ start : stop ] 
-        
-        time_interval_length = self.config [ 'time_interval_length' ].values [ 0 ]
+         
+        time_interval_length = int ( self.config [ 'time_interval_length' ].values [ 0 ] )
 
         d_fit_time = int ( self.config [ 'd_fit_time' ] )
 
@@ -368,24 +423,26 @@ class Eprofile_Reader ( object ) :
 
         five_time = pd.date_range ( start = dt [ 0 ] , end = dt [ -1 ] , freq = d_fit_time_str )
 
-        thirty_time = five_time + datetime.timedelta ( minutes = time_interval_length)
+        thirty_time = five_time + datetime.timedelta ( minutes = time_interval_length )
 
-        start_inds = [ np.where ( np.asarray ( dt ) <= f ) [ 0 ] [-1] for f in five_time ]
+        start_inds = [ np.where ( np.asarray ( dt ) >= f ) [ 0 ] [ 0 ] for f in five_time ]
 
         end_inds = [ np.where ( np.asarray ( dt ) <= f ) [ 0 ] [ -1 ]   for f in thirty_time ]
         
-        overlap_functions = np.empty_like (self.ov)
+        mode_diff = stats.mode ( np.asarray ( end_inds ) - np.asarray ( start_inds ) )
+        
+        end_inds = start_inds + mode_diff.mode
+        
+        overlap_functions = np.empty_like ( self.ov )
         
         overlap_functions [ : ] = 0
 
         for s , f in zip ( start_inds , end_inds ) :
-            
-            print (s , f)
 
             if dt [ s ] <= ( dt [ -1 ] -  datetime.timedelta ( minutes = time_interval_length ) ) :
                 
-                int_str = 'Interval' + str( dt [ s ].time ( ) ) + 'to' + str ( dt [ f ].time ( ) ) + ' ' + str ( dt [ s ].date ( ) )
-                
+                int_str = 'Interval' + datetime.datetime.strftime ( dt [ s ] , '%H:%M:%S%f' ) + '-' + datetime.datetime.strftime ( dt [ f ] , '%H:%M:%S%f' ) + ' ' +  str ( self.time [ s ] ) + ' to ' + str ( self.time [ f ] ) + ' ' + str ( dt [ s ].date ( ) )
+  
                 results [ int_str ] = {}
 
                 check1 = pc.at_least_one_profile ( self.missing_flag [ s : f ] )
@@ -403,29 +460,26 @@ class Eprofile_Reader ( object ) :
                 if check1 and check2 and check3 and check4 and check5:
 
                     results [ int_str ] [ 'pre-check results' ] = 'passed pre-checks. Max range is = ' + str ( round ( max_available_fit_range , 1  ) )  + 'm' 
+                    
+                    poly_results = proc.check_polyfit ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
+                    
+                    results [ int_str ] [ 'data_frame' ] = poly_results
+                    
 
                 else:
-
+                    
                     checks = [ check1 , check2 , check3 , check4 , check5 ]
                     
                     results [ int_str ] [ 'pre-check results' ] = self.catch_errors ( checks , max_fit_ranges , dt [ s : f ] , self.config , variance , X , Y  )
-
-                poly_results , candidates , post_fit_results , corrected_ov = proc.check_polyfit ( self.rcs_0 [ s : f , : ] , self.rng , max_available_fit_range , self.config , self.ov )
-                
-                results [ int_str ] [ 'poly results' ] = poly_results
-                
-                results [ int_str ] [ 'candidates' ] = candidates
-                
-                results [ int_str ] [ 'post_fit_results' ] = post_fit_results
-                
-                results [ int_str ] [ 'corrected_ov' ] = corrected_ov
-                      
-        passed_inds = srt.check_ov_fcs_in_time_ranges ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
+                    
+                    results [ int_str ] [ 'data_frame' ] = pd.DataFrame(data = [False], columns = ['pass_all'])
+                    
+        self.results = results
+       
+        passed_inds = srt.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
         
         self.passed_inds = passed_inds
-        
-        self.results = results
-        
+    
 
 
         

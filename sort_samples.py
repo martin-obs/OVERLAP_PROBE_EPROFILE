@@ -18,10 +18,12 @@ and Melania Van Hove.
 
 import numpy as np
 import datetime
-import scipy.signal as ss
-#import numpy.polynomial.polynomial as pol
+import gc
 
-def get_ov_ok_info ( A_dict ) :
+from process_checks_vec import conv3d
+
+
+def get_ov_ok_info_df ( A_dict , rng ) :
     
     '''
     
@@ -29,210 +31,279 @@ def get_ov_ok_info ( A_dict ) :
     
     constructs lists of time intervals containing good samples, and corresponding 
     
-    litst of upper and lower range limits and corrected overlap functions. 
+    lists of upper and lower range limits and overlap functions. 
     
     '''
-    
-    time_intervals = [ key for key in A_dict.keys ( ) if bool ( A_dict [ key ] [ 'corrected_ov' ] )  ]
-    
-    starts = [ datetime.datetime.strptime( t [ 8:16 ] + ' ' + t [ 27:37 ] , '%H:%M:%S %Y-%m-%d' ) for t in time_intervals ]
-    
-    ends = [ datetime.datetime.strptime( t [ 18:27 ] + ' ' + t [ 27:37 ] , '%H:%M:%S %Y-%m-%d' ) for t in time_intervals ]
-    
-    times = list ( zip ( starts , ends ) )
-    
-    ranges = [ list ( A_dict [ key ] [ 'corrected_ov' ].keys ( ) ) for key in A_dict.keys ( ) if bool ( A_dict [ key ] [ 'corrected_ov' ] )  ]
-    
-    lower = [ [ float ( item [ 0:6 ] ) for item  in r ] for r in ranges ]
-    
-    upper = [ [ float ( item [ 22:28 ] ) for item  in r ] for r in ranges ]
-    
-    ov_fcs = [ list ( A_dict [ key ] [ 'corrected_ov' ].values(  ) )  for key in A_dict.keys ( ) if bool ( A_dict [ key ] [ 'corrected_ov' ] )  ]
-    
-    return times , lower , upper , ov_fcs
-    
-def check_ov_fcs_in_time_ranges ( results_dict , dt , rng , rcs , ov , config ) :
-    
-    '''
-    
-    Takes each corrected ov_fc that passed all checks so far, and 
-    
-    applies this to the RCS (truncated to the max range of the oc_fc being
-                           
-    tested) within each time range that contains any valid corrected 
-    
-    ov_fc. Finds the relative gradient of this corrected RCS and check 
-    
-    it is below a threshold
-    
-    '''
-    
-    times , lower , upper , ov_fcs = get_ov_ok_info ( results_dict  )
-    
-    times = np.asarray(times)
-    
-    max_ranges = [ np.max ( item ) for item in upper ] 
-    
-    passed_inds = []
-    
-    for i , test_functions in enumerate (ov_fcs) :
         
-        max_r = max_ranges [ i ]
+    time_intervals  = [ np.repeat ( key , np.shape (  A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True ] ) [ 0 ] )  for key in A_dict.keys ( ) if  bool ( any (A_dict [ key ] ['data_frame'] ['pass_all'] ) ) ] 
         
-        window_inds = ( dt >= times [ i , 0 ] ) * ( dt <= ( times [ i , 1 ] ) )
-        
-        range_inds = ( rng >= config [ 'min_range_std_over_mean' ].values [ 0 ]  ) * ( rng <= max_r )
-        
-        RCSc = rcs * ov 
-        
-        for test_function in test_functions:
-
-            signal = np.log10 ( abs ( RCSc / test_function ) ) [ : , range_inds ] [ window_inds , : ]
-           
-            gradY = conv2 (  signal , direction =  'y' )
-
-            gradX = conv2 (  signal , direction = 'x' )
-            
-            relgradmagn = ( np.sqrt ( gradX ** 2 + gradY ** 2 ) / abs ( signal ) ) [ 1 : -1 , 1 : -1 ]
-                        
-            condition1 = ( np.nanmax ( np.nanmax ( relgradmagn , axis = 1 ) ) <=  config [ 'max_relgrad' ].to_numpy ( ) )
-                
-            condition2 = ( np.nanmean ( np.nanmean ( relgradmagn , axis = 1 ) ) <= config [ 'max_relgrad_mean' ].to_numpy ( ) )
-            
-            if all ( [ condition1 , condition2 ] ) :
-                
-                condition3 = check_standard_over_mean ( times , max_ranges , test_function ,  RCSc , dt , rng ,  config )
-                
-                if condition3 :
-                               
-                    passed_inds.append ( True )
-                
-                else:
-                    
-                    passed_inds.append ( False )
-                
-    return passed_inds
-                
-            
-def check_standard_over_mean ( times , max_ranges , test_function ,  RCSc , dt , rng ,  config ) :
+    #print (time_intervals)
+    
+    time_intervals = [ item for sublist in time_intervals for item in sublist ]
      
-    '''
+    starts = [ datetime.datetime.fromtimestamp ( ( float ( t.split ( ' ' ) [ 1 ] ) ) ) for t in time_intervals ]
     
-    Take each corrected ov_fc that passed all checks so far, and 
+    ends =  [ datetime.datetime.fromtimestamp ( ( float ( t.split ( ' ' ) [ 3 ] ) ) ) for t in time_intervals ]
     
-    apply this to the RCS (truncated to the max range of the oc_fc being
-                           
-    tested) withing each time range that contains any valid corrected 
-    
-    ov_fc. Check that the standard over mean of the corrected signal within 
-    
-    a sliding time window it is below a threshold
-    
-    '''
+    time_ints = np.asarray( list ( zip ( starts , ends ) ) )
 
-    print ('checking standard over mean')    
+    ts = [ key for key in A_dict.keys ( ) if  bool ( any ( A_dict [ key ] ['data_frame'] ['pass_all'] ) ) ]
     
-    for i in range (np.shape(times)[0]):
+    ov_fcs = [ item for sublist in [  list ( A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True ].to_numpy ( ) [ : , 27 : ] )  for key in ts ] for item in sublist ]
     
-        window_inds = ( dt >= times [ i , 0 ] ) * ( dt <= ( times [ i , 1 ] ) )
-        
-        dt_window = dt [ window_inds ]
-        
-        max_r = max_ranges [ i ] 
-        
-        range_inds = ( rng >= config [ 'min_range_std_over_mean' ].values [ 0 ]  ) * ( rng <= max_r )
+    temperatures = [ item for sublist in [ list ( A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True][ 'internal_temperature'] ) for key in ts ] for item in sublist ]
+    
+    starts = [ datetime.datetime.utcfromtimestamp ( ( float ( t.split ( ' ' ) [ 1 ] ) ) ) for t in ts ]
+    
+    ends =  [ datetime.datetime.utcfromtimestamp ( ( float( t.split ( ' ' ) [ 3 ] ) ) ) for t in ts ]
+    
+    times = np.asarray( list ( zip ( starts , ends ) ) )
+ 
+    lower = [ list ( A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True][ 'rng_start'] ) for key in ts ]
+    
+    upper = [ list ( A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True][ 'rng_end'] ) for key in ts ]
+    
+    max_rng_for_interval = [ item for sublist in [ np.repeat( np.max ( r ) , len ( r ) ) for r in upper ] for item in sublist ]
+    
+    print (len(ts))
+    
+    print (len(ov_fcs) , len(temperatures))
+    
+    print (len(max_rng_for_interval))
+         
+    return time_ints , times , lower , upper , max_rng_for_interval , ov_fcs , temperatures
+
+
+def make_deep_signal ( dt , times , RCSc ) :
+    
+     '''
+     
+     Takes the RCS already truncated to altitude fitting window 
+     
+     and pulls out time windows corresponding to 'times' and 
+     
+     stacks them into third dimension. Returns array of dimension
+     
+     ( time_interval_length , altitude_window , number_of_time_intervals )
+     
+     '''
           
-        dt_sliding_variance=  int ( config [ 'dt_sliding_variance' ] )
+     deep_time = np.repeat ( dt [ : , np.newaxis ] , np.shape ( times ) [ 0 ] , axis = 1 )
+
+     unsorted_time_window_inds =  np.argwhere ( (  deep_time >= times [ : , 0 ] ) * ( deep_time <= times [ : , 1 ] ) )
+     
+     profiles_per_time_window  = int ( np.shape ( unsorted_time_window_inds ) [ 0 ] / np.shape ( times ) [ 0 ] )
+     
+     time_window_inds = unsorted_time_window_inds [ unsorted_time_window_inds [ : , 1 ].argsort ( ) ] [ : , 0 ]
+     
+     time_window_inds = np.sort ( time_window_inds.reshape ( np.shape ( times ) [ 0 ] , profiles_per_time_window  ) ) 
+     
+     deep_signal = np.rollaxis ( RCSc [ time_window_inds , : ] , 0 , 3 ).astype('float32')
+
+     return deep_signal
+ 
+    
+def make_variance_windows ( dt , times , config ) :
+   
+    '''
+    
+    Takes the RCS already truncated to altitude fitting window 
+    
+    and pulls out time windows corresponding to 'times' and 
+    
+    stacks them into third dimension. Returns array of dimension
+    
+    ( time_interval_length , altitude_window , number_of_time_intervals )
+    
+    '''
+    
+    dt_sliding_variance=  int ( config [ 'dt_sliding_variance' ] )
+    
+    deep_time = np.repeat ( dt [ : , np.newaxis ] , np.shape ( times ) [ 0 ] , axis = 1 )
+    
+    unsorted_time_window_inds =  np.argwhere ( (  deep_time >= times [ : , 0 ] ) * ( deep_time < times [ : , 1 ] ) )
+    
+    profiles_per_time_window  = int ( np.shape ( unsorted_time_window_inds ) [ 0 ] / np.shape ( times ) [ 0 ] ) 
+    
+    time_window_inds = unsorted_time_window_inds [ unsorted_time_window_inds [ : , 1 ].argsort ( ) ] [ : , 0 ]
+    
+    time_window_inds = np.sort ( time_window_inds.reshape ( np.shape ( times ) [ 0 ] , profiles_per_time_window  ) ) 
+    
+    profiles_per_sliding_window = int ( datetime.timedelta ( minutes = dt_sliding_variance ) / ( dt [ 1 ] - dt [ 0 ] ))
+    
+    no_sliding_windows = 1 + profiles_per_time_window - profiles_per_sliding_window
+    
+    sliding_inds = np.repeat (  np.arange ( 0 , profiles_per_sliding_window , 1 ) [ np.newaxis , : ] , no_sliding_windows , axis = 0) + np.arange ( 0 , no_sliding_windows , 1 ) [ : , None ]
+    
+    return sliding_inds
+
+
+def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
+    
+    time_intervals , times , lower , upper , max_rng , ov_fcs , temperatures = get_ov_ok_info_df ( results_dict , rng  )
+    
+    max26 = [ np.max ( r )  for r in upper ]
+    
+    if np.shape ( ov_fcs ) [ 0 ] == 0 :
         
-        max_std_over_mean = config [ 'max_std_over_mean' ].to_numpy ( )
+        return False
+    
+    if np.shape ( ov_fcs ) [ 0 ] <= config [ 'min_nb_samples_for_skipping_good_test' ].values [ 0 ] :
+      
+        RCSc = rcs * ov 
+           
+        range_index = ( rng >= config [ 'min_range_std_over_mean' ].values [ 0 ] ) * ( rng <= np.max ( max_rng ) )
         
-        variance_times =  dt_window + datetime.timedelta ( minutes = dt_sliding_variance )
-
-        start_inds = [ *range ( 0 , len (  dt_window ) ) ]
-
-        end_inds = [ np.where ( np.asarray (  dt_window ) <= f ) [ 0 ] [ -1 ] for f in variance_times ]
+        RCSc = RCSc [ : , range_index ]
         
-        np.seterr(divide='ignore')
+        rng = rng [ range_index ]
         
-        signal1 = np.log10 ( abs ( RCSc / test_function ) ) [ : , range_inds ] [ window_inds , : ]
+        ov_fcs = np.asarray(ov_fcs) [ : , range_index ]     
+           
+        deep_signal = make_deep_signal ( dt , times , RCSc )
         
-        std_over_mean = np.zeros ( np.shape ( signal1 ) [ 1 ] )
+        condition1 = check_variance (  deep_signal  , ov_fcs , times , dt  , config )
+        
+        condition2 = check_rel_grad_magn ( rng  , max26 , ov_fcs  , times , deep_signal , config )
+          
+        return condition1 * condition2
+    
+    else:
+        
+        return np.ones( np.shape ( ov_fcs ) [ 0 ] ).astype(bool)
+    
+      
+def check_rel_grad_magn ( rng  , max26, ov_fcs , times , deep_signal , config ):
+    
+    stack_size = np.shape ( ov_fcs ) [ 0 ]
+      
+    deep_signal = np.tile ( deep_signal , stack_size  ).astype('float32')
+    
+    ovs_to_test = np.repeat ( ov_fcs , np.shape ( times ) [ 0 ] , axis = 0).astype('float32')
+    
+    deep_signal = np.asarray ( abs ( deep_signal / ovs_to_test.T ) ).astype('float32')
+      
+    del ovs_to_test
+    
+    gc.collect ( )
+    
+    lcc = np.log10 ( deep_signal  ).astype('float32')
+               
+    gradY = ( conv3d (  lcc , direction =  'y' ) ).astype('float32')
 
-        for s , f in zip ( start_inds , end_inds ) :
+    gradX = ( conv3d ( lcc , direction = 'x' ) ).astype('float32')
+    
+    gradY =  ( ( np.sqrt ( gradX ** 2 + gradY ** 2 ) / abs ( lcc ) ) ).astype('float32')
+    
+    del gradX
+    
+    del lcc
+    
+    gc.collect ( ) 
+    
+    gradmax = np.nanmax ( gradY [ 1:-1 , : , :] , axis = 0 )
+    
+    a = np.asarray(np.where(rng[:,None] == np.asarray(max26).astype('float32')))
 
-            if  dt_window [ s ] <= (  dt_window [ -1 ] -  datetime.timedelta ( minutes = dt_sliding_variance ) ) :
+    a = a[:,np.argsort(a[1,:])]
 
-                signal2 = np.abs ( signal1  [ s : f , :  ] )
-
-                std_over_mean_tmp = np.nanstd ( np.emath.log10 ( signal2 ) , axis = 0 ) / np.nanmedian ( np.emath.log10 ( signal1 )  , axis = 0 )
-
-                std_over_mean = np.maximum ( std_over_mean , std_over_mean_tmp )
+    a = a [0,:]
+    
+    a = np.tile( a, stack_size )
+    
+    for i , j in enumerate (a) :
+        
+        gradmax [j-1:,i] = np.nan
                 
-                if np.nanmax ( std_over_mean > max_std_over_mean ):
+    con1 =  (np.nanmax ( gradmax [  1:-1 , : ]  , axis = 0 )  <=  config [ 'max_relgrad' ].to_numpy ( ) ).astype(bool)
+  
+    con2 = ( np.nanmean ( np.nanmean ( gradY [ 1:-1 , 1:-1 , : ] , axis = 1 ),axis = 0 ) <= config [ 'max_relgrad_mean' ].to_numpy ( ) ).astype(bool)
+   
+    con1 = np.multiply.reduceat ( con1 , np.arange ( 0 , len ( con1 ) , np.shape ( times ) [ 0 ] ) ).astype(bool)
+    
+    con2 = np.multiply.reduceat ( con2 , np.arange ( 0 , len ( con2 ) , np.shape ( times ) [ 0 ] ) ).astype(bool)
+    
+    #condition  = np.multiply.reduceat ( con12 , np.arange ( 0 , len ( con12 ) , np.shape ( times ) [ 0 ] ) ).astype(bool)
+
+     
+    condition = con1 * con2
+      
+    return condition 
+    
+   
+def check_variance ( signal  , ov_fcs , times , dt  , config )  :
+    
+    stack_size = np.shape ( ov_fcs ) [ 0 ]
+      
+    signal = np.tile ( signal , stack_size  ).astype('float32')
+    
+    ovs_to_test = np.repeat ( ov_fcs , np.shape ( times ) [ 0 ] , axis = 0).astype('float32')
+    
+    signal = np.log10 ( np.asarray ( abs ( signal / ovs_to_test.T ) ) ).astype('float32')
+    
+    sliding_window_inds = make_variance_windows ( dt , times , config ).astype('int32')
+    
+    denomenator =  np.nanmedian ( signal , axis = 0 ).astype('float32')
+            
+    variance = stdomean (sliding_window_inds , signal , denomenator , np.shape ( ov_fcs ) [ 0 ] ,  np.shape ( times ) [ 0 ] ).astype('float32')  
+       
+    condition = np.nanmax ( variance , axis = 0 )  <  config [ 'max_std_over_mean' ].to_numpy ( )
+    
+    return condition
+    
+   
+def stdomean (sliding_window_inds , deep_signal , denomenator , ov_shape ,  times_shape  ):
+    
+    variance = np.zeros( ( np.shape ( sliding_window_inds ) [ 0 ] ,  ov_shape ) ).astype('float32')
+    
+    for sw in range ( np.shape ( sliding_window_inds ) [ 0 ]  ) :
+        
+        v = np.nanstd (deep_signal [ sliding_window_inds [ sw ] , : , : ] ,  axis = 0 ) / denomenator
+             
+        v = np.maximum.reduceat ( v.T , np.arange ( 0 , np.shape ( v ) [ 1 ] , times_shape ) )
+        
+        variance [ sw , : ] = np.max ( v , axis = 1 )
                     
-                    return False
-                
-                else :
-                    
-                    pass
-                
-        if np.nanmax ( std_over_mean < max_std_over_mean ):
-                               
-            return True
-                    
-def remove_failed ( A_dict, passed_inds , rng  , config ) :
+    return variance    
+
+def remove_failed ( results_dict , passed_inds , rng  , config ) :
+    
     
     passed_inds = passed_inds
     
-    ovs = np.zeros(len (rng))
+    ovs = np.zeros ( len ( rng ) )
     
-    intervals = np.array ([0 , 0] , dtype = float )
+    intervals = np.array ( [ 0 , 0 ] , dtype = float )
     
-    times , lower , upper , ov_fcs = get_ov_ok_info ( A_dict )
-    
+    intervals , times , lower , upper ,max_rng_for_interval  , ov_fcs , temperatures = get_ov_ok_info_df ( results_dict , rng  )
+        
     lower = [ item for sublist in lower for item in sublist]
     
     upper = [ item for sublist in upper for item in sublist]
-    
-
-        
-    for t ,  f in enumerate (ov_fcs) :
-        
-        ts = np.asarray ( times ) [ t ,  0 ].timestamp()
-        
-        tf = np.asarray ( times )  [ t , 1 ].timestamp()
-        
-        intervaltmp = np.zeros ( ( np.shape(np.asarray ( f ) ) [ 0 ] , 2 ) )
-        
-        intervaltmp [ : , 0 ] = ts
-        
-        intervaltmp [ : , 1 ] = tf
-        
-        intervals  = np.vstack ( ( intervals , intervaltmp ) )    
-        
-        ovs = np.vstack ( ( ovs , np.asarray ( f ) ) )
-        
-    intervals = intervals [1:,:]
-                             
-    ovs = ovs [ 1 : , : ]
+                                 
+    ovs = np.asarray(ov_fcs)
     
     ovs = ovs [ passed_inds , : ]
     
     intervals = intervals [ passed_inds , : ]
     
-    rng_intervals = np.asarray(list(zip (lower,upper)))
+    temperatures = np.asarray ( temperatures ) [ passed_inds ]
+    
+    rng_intervals = np.asarray ( list ( zip ( lower , upper ) ) ) [ passed_inds , : ]
  
-    print ( np.shape ( ovs ) , np.shape (intervals ) , np.shape(rng_intervals))
+    #print ( np.shape ( ovs ) , np.shape (intervals ) , np.shape ( rng_intervals ) )
     
-    final_ovs , final_ov  ,  outlier_pass_inds = remove_outliers (ovs , rng , config )
+    final_ovs , final_ov  ,  outlier_pass_inds = remove_outliers ( ovs , rng , config )
     
-    print (np.shape ( final_ovs ) )
+    print ('final ovs = ' , np.shape ( final_ovs ) )
     
     intervals = intervals [ outlier_pass_inds, :]
     
-    rng_intervals = rng_intervals [ outlier_pass_inds, :]
+    temperatures = temperatures [ outlier_pass_inds ]
     
-    return intervals , rng_intervals , final_ovs , final_ov
+    rng_intervals = rng_intervals [ outlier_pass_inds, : ]
+    
+    return intervals , rng_intervals , final_ovs , temperatures , final_ov
     
 def remove_outliers (  ovs , rng , config ) :
     
@@ -244,11 +315,11 @@ def remove_outliers (  ovs , rng , config ) :
     
     for idx in range( 0 , len(rng) ) :
            
-        pc_25.append( prctile ( np.asarray( ovs [ : , idx ] ), 25 ) )
+        pc_25.append ( prctile ( np.asarray ( ovs [ : , idx ] ,dtype='float64') , 25 ) )
         
-        pc_75.append(prctile ( np.asarray(ovs [ : , idx ] ), 75 ))
+        pc_75.append ( prctile ( np.asarray ( ovs [ : , idx ] ,dtype='float64') , 75 ) )
         
-        pc_50.append ( prctile ( np.asarray(ovs [ : , idx ]) , 50  ))
+        pc_50.append ( prctile ( np.asarray ( ovs [ : , idx ] ,dtype='float64') , 50 ) )
         
     pc_25 = np.asarray (  pc_25 )
     pc_75 = np.asarray (  pc_75 )
@@ -265,7 +336,7 @@ def remove_outliers (  ovs , rng , config ) :
 
     for r , ov_func in enumerate ( ovs ) :
 
-        if  ( all (ovs[r,:]  >= outliers_minus  ) ) and ( all (ovs[r,:]   <= outliers_plus ) ) :
+        if  ( all ( ovs [ r , : ]  >= outliers_minus ) ) and ( all (ovs[r,:]   <= outliers_plus ) ) :
             
             ov_final = np.vstack ( ( ov_final , ov_func ) )
             
@@ -291,24 +362,3 @@ def prctile ( x , p ) :
     return ( quantile ( x ,  p  / 100 ) )   
       
     
-def conv2 ( x , direction = None ) :
-
-    '''
-
-    Matlab's conv2 and Python's scipy.signal.convolve2d behave slightly differently
-
-    This function reproduces the behaviour of the Matlab function. Used in 'check_grads'
-
-    to match the Matlab code results
-
-    '''
-    
-    if direction == 'y' :
-        
-        grad = np.asarray ( [ 1 , 0 , -1 , 2 , 0 , -2 , 1 , 0 , -1 ] ).reshape ( ( 3 , 3 ) )
-        
-    elif direction == 'x' :
-
-        grad = np.asarray ( [ 1 , 2 , 1 , 0 , 0 , 0 , -1 , -2 , -1 ] ).reshape ( ( 3 , 3 ) )
-
-    return np.rot90 ( ss.convolve2d ( np.rot90 ( x , 2 ) , np.rot90 ( grad , 2 ) , mode = 'same' ) , 2 )    
