@@ -1,7 +1,7 @@
 # OVERLAP_PROBE_EPROFILE
 Repository for the development of code to correct the overlap functions for CHM15K ceilometers and others. 
 
-This code is a translation and refactoring of Matlab code written by Maxime Hervo, Rolf Rufenacht and Melania Van Hove.
+This code is a translation and refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
 
 The code will take a list of EPROFILE L1 CHM15K data files and calculate coeficients that can be used to create an overlap function to correct for temperature effects. 
 It is based on the techniques presented in:
