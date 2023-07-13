@@ -11,7 +11,9 @@ overlap function of CHM15k ceilometers. Atmospheric Measurement Techniques, 7, 2
 Creating a virtualenv
 ----------------------------
 
-Users can create a Python virtual environment and then install this package using pip. To create a virtual environment:
+To use the code please create a Python virtual environment and then install this package using pip. 
+
+To create a virtual environment:
 
     $ python -m venv "path to new environment"
 
@@ -31,13 +33,15 @@ This will install any dependencies into the virtualenv if necessary.
 Using the code
 --------------
 
-After intallaion:
+After installation:
 
 Step 1
+------
 Users should use "run_process_L1.py" as the basis for a wrapper script to select the directory and date range for the L1 files they wish to use, as well as the config file 
 and the reference overlap function. One year of L1 files will take around 5 hours to process and the results will be a csv file for each day for which at least one successful 
 overlap sample was found. 
 
 Step2
+------
 Users should then use "run_temp_model_build.py" as the basis for a wrapper script to select the directory and date range for the csv files resulting from step 1 they
 wish to use in calculating a temperature model. The result is a netCDF file containg the temperature model, the reference overlap function used, and associated meta data. 
