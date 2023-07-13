@@ -45,5 +45,15 @@ setup(
     description = "EPROFILE overlap temperature correction code",
     long_description = long_description(),
     url = "https://github.com/martin-obs/OVERLAP_PROBE_EPROFILE",
-    packages = find_packages()
+    packages = find_packages(),
+    install_requires=['numpy',
+                      'netCDF4',
+                      'scipy',
+                      'matplotlib',
+                      'datetime',
+                      'pandas',
+                      'matplotlib',
+                      'more_itertools',
+                      ],
 )
+
