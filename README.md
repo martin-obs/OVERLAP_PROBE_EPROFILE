@@ -1,6 +1,6 @@
 # OVERLAP PROBE EPROFILE
 
-Top level python package OVERLAP_PROBE_EPROFILE which provides code to correct the overlap functions for CHM15K ceilometers and others. 
+Top level python package OVERLAP_PROBE_EPROFILE which provides code to correct the overlap functions for CHM15K ceilometers. 
 
 This code is a translation and refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
 
