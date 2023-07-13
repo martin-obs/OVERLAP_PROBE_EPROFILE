@@ -102,7 +102,7 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
 
         max_r = np.where ( rng <= max_available_fit_range ) [ 0 ] [ -1 ]
 
-        dt_sliding_variance=  int(config [ 'dt_sliding_variance' ])
+        dt_sliding_variance=  int ( config [ 'dt_sliding_variance' ].iloc [ 0 ] )
 
         max_std_over_mean = config [ 'max_std_over_mean' ].to_numpy()
 

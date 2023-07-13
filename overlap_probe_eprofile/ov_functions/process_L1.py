@@ -417,7 +417,7 @@ class Eprofile_Reader ( object ) :
          
         time_interval_length = int ( self.config [ 'time_interval_length' ].values [ 0 ] )
 
-        d_fit_time = int ( self.config [ 'd_fit_time' ] )
+        d_fit_time = int ( self.config [ 'd_fit_time' ].iloc [ 0 ] )
 
         d_fit_time_str = str ( d_fit_time ) + 'min'
 

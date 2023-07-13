@@ -117,7 +117,7 @@ def make_variance_windows ( dt , times , config ) :
     
     '''
     
-    dt_sliding_variance=  int ( config [ 'dt_sliding_variance' ] )
+    dt_sliding_variance=  int ( config [ 'dt_sliding_variance' ].iloc [ 0 ] )
     
     deep_time = np.repeat ( dt [ : , np.newaxis ] , np.shape ( times ) [ 0 ] , axis = 1 )
     

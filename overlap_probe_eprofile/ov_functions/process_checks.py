@@ -20,6 +20,9 @@ import scipy.signal as ss
 from copy import deepcopy
 import pandas as pd
 
+np.seterr(divide = 'ignore') 
+np.seterr(invalid = 'ignore')
+
 def _make_mask ( fl , fb , rng ) :
     
     '''
