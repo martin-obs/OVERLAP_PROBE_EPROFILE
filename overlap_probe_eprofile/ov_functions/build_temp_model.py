@@ -322,7 +322,7 @@ class Temperature_model_builder ( object ) :
             
         self._if_last_diff_negative_step_backwards ( )
         
-        self.end_ind = -2
+        #self.end_ind = -2
         
         
     def _if_last_diff_negative_step_backwards ( self ):

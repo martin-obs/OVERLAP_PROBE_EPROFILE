@@ -6,9 +6,9 @@ Created on Thu May 25 10:22:04 2023
 @author: mosborne
 """
 
-import build_temp_model as btm
+import overlap_probe_eprofile.ov_functions.build_temp_model as btm
 
-import write_to_netcdf as w2nc
+import overlap_probe_eprofile.ov_functions.write_to_netcdf as w2nc
 
 path_to_csvs = '/scratch/mosborne/overlap_results/GRANADA/'
 
