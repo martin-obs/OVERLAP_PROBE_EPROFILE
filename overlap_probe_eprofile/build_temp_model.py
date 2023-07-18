@@ -200,9 +200,13 @@ class Temperature_model_builder ( object ) :
         
         day_temp = []
         
-        for f in self.available_files :
+        plt_date = []
+        
+        for i , f in enumerate ( self.available_files ):
             
             df = pd.read_csv ( self.path_to_csvs + f , skiprows = 5 , sep = ',' , header = 0 )
+            
+            d = self.available_dts [ i ]
                        
             if np.shape ( df ) [ 0 ] >= self.config [ 'min_nb_good_samples_after_outliers_removal' ].to_numpy()  :
             
@@ -211,11 +215,14 @@ class Temperature_model_builder ( object ) :
                 day_ov = np.vstack ( ( day_ov , ov ) )
                 
                 day_temp.append ( t )
+                
+                plt_date.append ( d )
             
         self.daily_ovs = day_ov [ 1 : , : ]
         
         self.daily_temp = np.asarray ( day_temp ) [ : ]
         
+        self.plt_dates = plt_date [ : ]
    
     def _create_daly_median ( self , df ) :
         
@@ -366,7 +373,7 @@ class Temperature_model_builder ( object ) :
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
         fig.set_size_inches(7,4)
         ax = plt.subplot(111)
-        ax.plot( self.r2_1 )
+        ax.plot(self.plt_dates ,  self.r2_1 )
         date_format = DateFormatter('%d/%m')
         ax.xaxis.set_major_formatter(date_format) 
         ax.grid()

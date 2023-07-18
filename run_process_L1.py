@@ -1,18 +1,18 @@
-import overlap_probe_eprofile.ov_functions.process_L1 as pro
+import overlap_probe_eprofile.process_L1 as pro
 import os
 import numpy as np
 import time
 import traceback
 
-base_path = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2022/'
+base_path = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2022/' #your L1 directory here
 
-ov_ref = 'TUB120011_20121112_1024.cfg'
+ov_ref = 'TUB120011_20121112_1024.cfg' #your reference ov function here
 
-months_to_pro = np.sort(os.listdir( base_path ))
+months_to_pro = np.sort ( os.listdir ( base_path ) )
 
-print (months_to_pro)
+print ( months_to_pro )
 
-total_start_time = time.time()
+total_start_time = time.time ( )
 
 for m in  months_to_pro [ : ] :
     
@@ -28,7 +28,7 @@ for m in  months_to_pro [ : ] :
                     
         start_time = time.time()
         
-        config = 'config.txt'
+        config = 'config.txt' # your config file here
         
         ov = ov_ref 
         

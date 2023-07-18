@@ -21,9 +21,9 @@ import pandas as pd
 from scipy import stats
 
 
-import overlap_probe_eprofile.ov_functions.pre_checks as pc
-import overlap_probe_eprofile.ov_functions.process_checks as proc
-import overlap_probe_eprofile.ov_functions.sort_samples as srt
+import overlap_probe_eprofile.pre_checks as pc
+import overlap_probe_eprofile.process_checks as proc
+import overlap_probe_eprofile.sort_samples as srt
 
 
 #-------------------------------------------------------------------------------

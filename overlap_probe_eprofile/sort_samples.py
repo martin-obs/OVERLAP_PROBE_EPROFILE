@@ -20,7 +20,7 @@ import numpy as np
 import datetime
 import gc
 
-from overlap_probe_eprofile.ov_functions.process_checks import conv3d
+from overlap_probe_eprofile.process_checks import conv3d
 
 
 def get_ov_ok_info_df ( A_dict , rng ) :
