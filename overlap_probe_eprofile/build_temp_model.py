@@ -267,7 +267,7 @@ class Temperature_model_builder ( object ) :
         
         '''
         
-        Calculates the intercepts (alpha) and slopes (beta) and correlation 
+        Calculates the slope (alpha) and intercept (beta) and correlation 
         
         coefficient ( r2 ) of a simple linear fit to the values in each column
         
@@ -291,9 +291,9 @@ class Temperature_model_builder ( object ) :
         
         Sy = np.ma.sum ( y , axis = axis  )
            
-        beta = ( n * Sxy - Sx * Sy ) / ( n * Sxx - Sx ** 2  )
+        alpha = ( n * Sxy - Sx * Sy ) / ( n * Sxx - Sx ** 2  )
         
-        alpha =  ( 1 / n ) * Sy - ( ( 1 / n ) * beta * Sx )
+        beta =  ( 1 / n ) * Sy - ( ( 1 / n ) * alpha * Sx )
         
         r2 = ( ( n * Sxy - Sx * Sy  ) ** 2 )  / ( ( n * Sxx - Sx **2 ) * ( n * Syy - Sy **2  ) )
               
@@ -303,9 +303,7 @@ class Temperature_model_builder ( object ) :
         
         self.diff_r2 = np.diff ( self.r2_1 )
         
-        print ( 'len diff_r2 = ' , len ( self.diff_r2 ) )
-
-        self.bool_run_len = list ( mit.run_length.encode ( self.diff_r2  < self.config ['thrsh_diff_r2'].values [ 0 ] ) )
+        self.bool_run_len = list ( mit.run_length.encode ( abs ( self.diff_r2 )  < self.config ['thrsh_diff_r2'].values [ 0 ] ) )
 
         max_true_count = -1
         
@@ -325,36 +323,90 @@ class Temperature_model_builder ( object ) :
             
             self.number_samples_flag = True
             
-            self.end_ind = int ( sum ( np.asarray ( self.bool_run_len ) [ : max_true_idx , 1 ] ) + max_true_count ) - 1 
+            self.end_ind = int ( sum ( np.asarray ( self.bool_run_len ) [ : max_true_idx , 1 ] ) + max_true_count ) - 1
             
-        self._if_last_diff_negative_step_backwards ( )
-        
-        #self.end_ind = -2
-        
-        
-    def _if_last_diff_negative_step_backwards ( self ):
+            self._if_last_diff_negative_step_forwards ( )
+            
+        else :
+            
+            self.number_samples_flag = False
+
+    def _if_last_diff_negative_step_forwards ( self ):
         
         idx = self.end_ind
         
-        while ( self.diff_r2 [ idx ] < 0 ) and ( idx >= 0 ) :
+        while ( self.diff_r2 [ idx ] < 0 ) and ( idx <= len ( self.diff_r2 ) ) :
             
-            idx = idx - 1
+            idx = idx + 1
             
         self.end_ind = idx  
-                
-    def do_regression_2 ( self ) :
-        
-        self._make_regresions_signals_2 ( )
-        
-        self.beta_2 , self.alpha_2 , self.r2_2 = self._simple_linear_fit ( self.n_2 , self.A_2 , self.B_2 , axis = 0 )
  
     def _make_regresions_signals_2 ( self ) :
          
-         self.B_2 = self.relative_difference  [ : self.end_ind  , : ] * 100
-         
          self.A_2 = np.repeat (  ( self.daily_temp-273.15 )  [  : ,  np.newaxis  ] , len ( self.rng ) , axis = 1 ) [   : self.end_ind   , : ]
          
+         self.B_2 = self.relative_difference  [ : self.end_ind  , : ] * 100
+         
          self.n_2 = np.shape ( self.A_2 ) [ 0 ]
+         
+         
+    def _remove_abberant_regression_results ( self ) :
+                
+        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 100 ) )
+        
+        if any ( abberations [ 0 ] ): 
+        
+            abberation_ind = np.max ( abberations )
+        
+            self.alpha_2 [ : abberation_ind + 1 ] = 0
+            
+            self.beta_2 [ : abberation_ind + 1 ] = 0
+
+        
+    def _check_for_artefacts ( self ) :
+        
+        grad_a_filtered = np.diff ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] )
+    
+        if not any ( grad_a_filtered < -0.7 ) and not any ( grad_a_filtered > 0.7 )  :
+    
+            self.artefact = False
+            
+        else :
+            
+            print ( 'Warning: artfifact detected with R2 method, trying with artifact progressive quality control' )
+            
+            
+    def do_regression_2 ( self ) :
+            
+        self.artefact = True 
+        
+        if self.number_samples_flag :
+        
+            self._make_regresions_signals_2 ( )
+            
+            self.alpha_2 , self.beta_2 , self.r2_2 = self._simple_linear_fit ( self.n_2 , self.A_2 , self.B_2 , axis = 0 )
+            
+            self._remove_abberant_regression_results ( )
+            
+            self._check_for_artefacts ( )
+            
+            self.end_ind = len ( self.A_2 ) 
+            
+        else:
+            
+            print ( 'Warning: not enough stable points so trying with artifact progressive detection' )  
+        
+        while self.artefact :
+            
+            self.end_ind = self.end_ind = -1
+            
+            self._make_regresions_signals_2 ( )
+            
+            self.alpha_2 , self.beta_2 , self.r2_2 = self._simple_linear_fit ( self.n_2 , self.A_2 , self.B_2 , axis = 0 )
+            
+            self._remove_abberant_regression_results ( )
+            
+            self._check_for_artefacts ( )
     
     def plot_regression_1 ( self ) :
         

@@ -19,6 +19,7 @@ import netCDF4 as nc
 import datetime
 import pandas as pd
 from scipy import stats
+import os
 
 
 import overlap_probe_eprofile.pre_checks as pc
@@ -79,9 +80,7 @@ class Eprofile_Reader ( object ) :
         self.instrument_id = getattr ( L_nc , 'instrument_id' ) 
 
         self.instrument_serial_number = getattr ( L_nc , 'instrument_serial_number' ) 
-
-
-
+        
     def get_constants ( self , config , ov ) :
         
         '''
@@ -124,9 +123,7 @@ class Eprofile_Reader ( object ) :
 
         config_df [ 'first_range_gradY' ] = config_df [ 'min_fit_range' ]
 
-        config_df [ 'min_nb_good_samples' ] = np.floor ( config_df ['good_samples_proportion'] *\
-
-                                                        config_df ['min_nb_samples'] )
+        config_df [ 'min_nb_good_samples' ] = np.floor ( config_df ['good_samples_proportion'] * config_df ['min_nb_samples'] )
 
         config_df [ 'min_slope' ] = -2.5*1e-4
 
@@ -328,7 +325,7 @@ class Eprofile_Reader ( object ) :
 
             return 'failed grad check: X = ' + str ( round ( X , 3 ) ) + ' Y = ' + str ( round ( Y, 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 2 ] , 1 ) ) + 'm'
         
-    def write_result_to_csv ( self ) : 
+    def write_result_to_csv ( self , save_path ) : 
         
         '''
         
@@ -351,32 +348,38 @@ class Eprofile_Reader ( object ) :
         results_df = pd.concat ( [ times_df , rng_df , temps , self.ov_df  ] , axis = 1 )
               
         location =  self.site_location.split ( ',' ) [ 0 ]
+        
+        complete_path = '/'.join ( ( save_path , location ) )
+        
+        if not os.path.exists ( complete_path )  :
+            
+            os.makedirs( complete_path )
                
         results_name = 'ov_results_' + location + '_' + self.opt_mod_number + '_' + str ( self.dt [ 0 ].date ( ) ) + '.csv'
                
         meta_data = [ 'opt_mod_number = ' + self.opt_mod_number ,'site_location = ' + self.site_location ,
                      'wigos_station_id = ' + self.wigos_station_id , 'instrument_id = ' + self.instrument_id ,
                      'instrument_serial_number = ' +  self.instrument_serial_number ]
+        
+        path_n_name = '/'.join ( ( complete_path , results_name ) )
               
-        with open ( '/scratch/mosborne/overlap_results/' + location + '/' + results_name , 'w+' ) as f :
+        with open (  path_n_name, 'w+' ) as f :
         
             content = f.read ( )
-            
-            #f.seek ( 0 , 0 )
             
             for l in meta_data :
             
                 f.write ( l.rstrip  ('\r\n' ) + '\n' + content )
         
-        results_df.to_csv ( '/scratch/mosborne/overlap_results/' + location + '/' + results_name , mode = 'a' , index = False )
+        results_df.to_csv (  path_n_name , mode = 'a' , index = False )
           
-    def get_final_overlapfunction (self) :
+    def get_final_overlapfunction ( self , save_path ) :
         
         if np.sum(self.passed_inds) != 0: 
         
             self.intervals , self.rng_intervals , self.final_ovs , self.temperatures , self.final_ov = srt.remove_failed ( self.results , self.passed_inds , self.rng , self.config )
             
-            self.write_result_to_csv ( )
+            self.write_result_to_csv ( save_path  )
                 
 
       

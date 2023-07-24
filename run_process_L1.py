@@ -6,7 +6,11 @@ import traceback
 
 base_path = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2022/' #your L1 directory here
 
+save_path = '/scratch/mosborne/overlap_results/' #your output directory here - a subdirectory with site location name will be created
+
 ov_ref = 'TUB120011_20121112_1024.cfg' #your reference ov function here
+
+config = 'config.txt' # your config file here
 
 months_to_pro = np.sort ( os.listdir ( base_path ) )
 
@@ -22,21 +26,17 @@ for m in  months_to_pro [ : ] :
     
     print ( files_to_pro )
     
-    for f in files_to_pro [ : ]  :
+    for f in files_to_pro [ 4:5 ]  :
                 
         print ('working on ' , f [ -11 : -3 ] )
                     
         start_time = time.time()
         
-        config = 'config.txt' # your config file here
-        
-        ov = ov_ref 
-        
         try :            
             
             L1 = pro.Eprofile_Reader ( f )
             
-            L1.get_constants ( config , ov )
+            L1.get_constants ( config , ov_ref )
             
             L1.create_time ( )
             
@@ -44,7 +44,7 @@ for m in  months_to_pro [ : ] :
             
             L1.loop_over_time ( start = 0 )
             
-            L1.get_final_overlapfunction ()
+            L1.get_final_overlapfunction ( save_path )
        
         except Exception: 
             
