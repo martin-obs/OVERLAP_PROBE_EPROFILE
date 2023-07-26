@@ -220,6 +220,8 @@ class Temperature_model_builder ( object ) :
             
         self.daily_ovs = day_ov [ 1 : , : ]
         
+        print ( np.shape ( self.daily_ovs ) [ 0 ] )
+        
         self.daily_temp = np.asarray ( day_temp ) [ : ]
         
         self.plt_dates = plt_date [ : ]
@@ -319,11 +321,14 @@ class Temperature_model_builder ( object ) :
   
         self.max_true_count = max_true_count
         
-        if self.max_true_count >= self.config ['number_samples'].values [ 0 ] :
+        print (max_true_count)
+        
+        if self.max_true_count > self.config ['number_samples'].values [ 0 ] :
             
             self.number_samples_flag = True
             
             self.end_ind = int ( sum ( np.asarray ( self.bool_run_len ) [ : max_true_idx , 1 ] ) + max_true_count ) - 1
+            
             
             self._if_last_diff_negative_step_forwards ( )
             
@@ -335,7 +340,7 @@ class Temperature_model_builder ( object ) :
         
         idx = self.end_ind
         
-        while ( self.diff_r2 [ idx ] < 0 ) and ( idx <= len ( self.diff_r2 ) ) :
+        while ( self.diff_r2 [ idx ] < 0 ) and ( idx <= ( len ( self.diff_r2 ) - 2 ) ) :
             
             idx = idx + 1
             
@@ -343,7 +348,7 @@ class Temperature_model_builder ( object ) :
  
     def _make_regresions_signals_2 ( self ) :
          
-         self.A_2 = np.repeat (  ( self.daily_temp-273.15 )  [  : ,  np.newaxis  ] , len ( self.rng ) , axis = 1 ) [   : self.end_ind   , : ]
+         self.A_2 = np.repeat (  ( self.daily_temp-273.15 )  [  : ,  np.newaxis  ] , len ( self.rng ) , axis = 1 ) [ : self.end_ind   , : ]
          
          self.B_2 = self.relative_difference  [ : self.end_ind  , : ] * 100
          
@@ -352,16 +357,15 @@ class Temperature_model_builder ( object ) :
          
     def _remove_abberant_regression_results ( self ) :
                 
-        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 100 ) )
+        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 90 ) )
         
-        if any ( abberations [ 0 ] ): 
+        if any ( abberations [ 0 ] ) : 
         
             abberation_ind = np.max ( abberations )
         
             self.alpha_2 [ : abberation_ind + 1 ] = 0
             
             self.beta_2 [ : abberation_ind + 1 ] = 0
-
         
     def _check_for_artefacts ( self ) :
         
@@ -374,8 +378,7 @@ class Temperature_model_builder ( object ) :
         else :
             
             print ( 'Warning: artfifact detected with R2 method, trying with artifact progressive quality control' )
-            
-            
+                        
     def do_regression_2 ( self ) :
             
         self.artefact = True 
@@ -432,8 +435,7 @@ class Temperature_model_builder ( object ) :
         ax.tick_params(direction="in",which="both")
         ax.set_xlabel('Date')
         ax.set_ylabel('R$^2$ values')
-        fig.savefig('test.png',format='png', dpi=300)
-        
+        fig.savefig('test.png',format='png', dpi=300)      
                
     def plot_regression_2 ( self ) :
         
@@ -456,9 +458,8 @@ class Temperature_model_builder ( object ) :
         ax.grid()
         ax.tick_params(direction="in",which="both")
         ax.set_xlabel('alpha')
-        #ax.set_ylabel('R$^2$ values')
         ax.set_ylim ( [ 0 , 600 ])
-        ax.set_xlim ( [ -1 , 6 ])
+        ax.set_xlim ( [ -1.5 , 3 ])
         fig.savefig('test_alpha.png',format='png', dpi=300)
 
 

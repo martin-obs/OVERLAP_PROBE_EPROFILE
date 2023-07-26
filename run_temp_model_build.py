@@ -18,7 +18,7 @@ config = 'config.txt'
 
 ref_ov = 'TUB120011_20121112_1024.cfg'
 
-TM = btm.Temperature_model_builder ( '2022/01/01' , '2022/04/29' , ref_ov ,  path_to_csvs  , config )
+TM = btm.Temperature_model_builder ( '2022/01/01' , '2022/12/29' , ref_ov ,  path_to_csvs  , config )
 
 TM.check_dates_available ( )
 
