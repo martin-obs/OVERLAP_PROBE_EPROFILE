@@ -66,6 +66,8 @@ class Temperature_model_builder ( object ) :
         self.path_to_csvs = path_to_csvs
         
         self.ref_ov = ref_ov
+        
+        self.ov_native_rng = np.arange ( 14.985 ,  15344.64+14.985 , 14.985 )
             
         self._get_constants ( config )
         
@@ -169,12 +171,21 @@ class Temperature_model_builder ( object ) :
            
            print ('Range resoloution changes on date(s) ' , *date_changes , sep = ', ' )
            
+           print ('daily files will be interpolated to resoluton of reference overlap function')
+           
+           self.rng = self.ov_native_rng
+ 
        else :
   
            print ( 'Range resolution consistent within date range')
            
            self._get_rng ( )
-                 
+           
+           if len ( self.rng ) != len ( self.ov_native_rng ) :
+               
+               self.ref_ov = np.interp ( self.rng , self.ov_native_rng , self.ref_ov)
+                       
+               self.ov_native_rng = self.rng                
         
     def _get_range_resolotion ( self ,  overlap_csv ) : 
         
@@ -220,8 +231,6 @@ class Temperature_model_builder ( object ) :
             
         self.daily_ovs = day_ov [ 1 : , : ]
         
-        print ( np.shape ( self.daily_ovs ) [ 0 ] )
-        
         self.daily_temp = np.asarray ( day_temp ) [ : ]
         
         self.plt_dates = plt_date [ : ]
@@ -231,6 +240,12 @@ class Temperature_model_builder ( object ) :
         ov = np.median ( np.asarray ( df.iloc [ : , 6: ] ) , axis = 0 )
         
         t = np.median ( np.asarray ( df.iloc [ : , 4 ] ) )
+        
+        if len (ov) != len (self.ov_native_rng) :
+            
+            rng_this_file = np.asarray ( df.columns.tolist() [ 6 : ] , dtype = 'float')
+            
+            ov = np.intep ( self.rng , rng_this_file , ov )
              
         return ov , t
         
@@ -320,8 +335,6 @@ class Temperature_model_builder ( object ) :
                 max_true_idx = idx
   
         self.max_true_count = max_true_count
-        
-        print (max_true_count)
         
         if self.max_true_count > self.config ['number_samples'].values [ 0 ] :
             
