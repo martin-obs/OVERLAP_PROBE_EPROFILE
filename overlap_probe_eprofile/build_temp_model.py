@@ -303,7 +303,7 @@ class Temperature_model_builder ( object ) :
     
     def choose_n_check_r2_diff_window ( self ) :
         
-        self.diff_r2 = np.diff ( self.r2_1 )
+        self.diff_r2 = np.ma.diff ( self.r2_1 )
         
         self.bool_run_len = list ( mit.run_length.encode ( abs ( self.diff_r2 )  < self.config ['thrsh_diff_r2'].values [ 0 ] ) )
 
@@ -328,8 +328,7 @@ class Temperature_model_builder ( object ) :
             self.number_samples_flag = True
             
             self.end_ind = int ( sum ( np.asarray ( self.bool_run_len ) [ : max_true_idx , 1 ] ) + max_true_count ) - 1
-            
-            
+                        
             self._if_last_diff_negative_step_forwards ( )
             
         else :

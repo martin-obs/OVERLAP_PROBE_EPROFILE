@@ -30,31 +30,16 @@ import overlap_probe_eprofile.sort_samples as srt
 #-------------------------------------------------------------------------------
 
 class Eprofile_Reader ( object ) :
-    
-    '''
+    """Class to read in netCDF of celometer data. Makes methods available
+    to allow processing through to products
 
-    Class to read in netCDF of celometer data. Makes methods available to
-
-    allow processing through to products
-
-    '''
-
+    :param data_file: full path to a netCDF file containing an L1 file of
+    CHM15k data
+    :type data_file:  str    
+    """
     def __init__( self , data_file  ):
-
-        '''
-
-        Class to hold ceilometer data for use with processing / plotting functions
-
-        Args:
-
-            data_file = full path to a netCDF file containing an L1 file of CHM15k data
-
-        Returns:
-
-           Class containing L1 ceilometer data for use with overlap methods
-
-        '''
-
+        """Constructor method
+        """
         L_nc = nc.Dataset( data_file )
 
         self.raw_time =  np.asarray ( L_nc.variables [ 'time' ] [ : ] ) 
@@ -83,17 +68,19 @@ class Eprofile_Reader ( object ) :
         
     def get_constants ( self , config , ov ) :
         
-        '''
+        """Reads in a text file of settings / threshold values. Those that can 
+        be are computed from a combination of other settings / data file 
+        dimentions. Aslo reads in a default ovelap function from a text file
+        Currently saved as a Pandas dataframe, this will be changed
+        to a named tuple in future for easier access
         
-        Read in a text file of settings / threshold values. Those that can be are 
-        
-        computed from a combination of other settings / data file dimentions. Currently 
-        
-        saved as a Pandas dataframe, this will be changed to a named tuple in future
-        
-        for easier access
-        
-        '''
+        :param config: path to text file containing settings and thresholds
+        :type config: str
+        :param ov: path to test file containing a default overlap function. The
+        resolution can be different to the data contained in data_file, but 
+        the function will be interpolated into a native resolution
+        :type ov : str
+        """
 
         config_df = pd.read_csv ( config , sep = ',', skiprows = 1 , header = None )
 
@@ -131,24 +118,21 @@ class Eprofile_Reader ( object ) :
 
 
     def _check_ov_range_res_same_as_data (self):
+        """Checks that the range resolution of the default overlap function is
+        the same as the data file
+        """
         
         if len ( self.ov ) != len ( self.rng ) :
             
             ov_native_rng = np.arange ( 14.985 ,  15344.64+14.985 , 14.985 )
             
             self.ov = np.interp ( self.rng ,  ov_native_rng , self.ov )
-                    
-        return self.ov
 
     def remove_some (self ) :
         
-        '''
-        
-        This is a utility used during code development to ensure that the code 
-        
+        """This is a utility used during code development to ensure that the code 
         works with data files with missing profiles - please ignore
-        
-        '''
+        """
 
         li = [ *range (5, 100 ) , *range (1020,2010) ]
 
@@ -164,15 +148,11 @@ class Eprofile_Reader ( object ) :
 
     def create_time ( self ):
 
-        '''
-
-        The time stamp that comes with the data is in fractional days
-
-        since epoch and it is convenient to convert this into datetime
-
+        """Creates more convinient time stamps. The time stamp that comes with
+        the data is in fractional days since epoch and it is convenient to 
+        seconds since epoch (UNIX time) and the convert this into datetime 
         objects
-
-        '''
+        """
        
         self.dt_raw = [ datetime.datetime ( 1970 , 1 , 1 ) + datetime.timedelta ( t ) for t in self.raw_time ]
         
@@ -183,13 +163,9 @@ class Eprofile_Reader ( object ) :
 
     def fill_gaps ( self ) :
 
-        '''
-
-        fill in any missing profiles within the start and end time of data_file
-
+        """Fills in any missing profiles within the start and end time of data_file
         with NaNs
-
-        '''
+        """
 
         tdelta = np.ediff1d ( self.time )
 
@@ -229,13 +205,20 @@ class Eprofile_Reader ( object ) :
 
     def __make_fill_times ( self , signal , gaps , mode_delta , ind_list ) :
 
-        '''
-
-        having found gaps, make time stamps to fill and so make a 
-
-        continuous time array
-
-        '''
+        """Having found gaps, make time stamps to fill and so make a 
+        continuous time        
+        :param signal: data with gaps to be filled
+        :type signal: array
+        :param gaps: sizes of any gaps in data 
+        :type gaps: list
+        :param mode_delta: mode lenght of time step in data 
+        :type mode_delta: float
+        :param ind_list: indices where nans are to be inserted
+        :type ins_list: list 
+        :return: filled_signal : data with nans inserted to 
+        where data is missing 
+        :rtype: array
+        """
 
         gap_inds = np.where ( gaps > 1 )
 
@@ -268,25 +251,19 @@ class Eprofile_Reader ( object ) :
 
     def __find_and_fill ( self , signal , gaps , ind_list ) :
 
-        '''
-
-        This does the actuall filling and is called within "fill_missing_profiles" 
-
-        Args:
-
-            signal - 2d array of profiles
-
-            gaps - list of sizes of any gaps
-
-            ind_list - list of indices where gaps are to be inserted
-
-        Returns:
-
-            filled_signal - 2d array of signal profiles with blank profiles 
-
-            inserted where data is missing 
-
-        '''
+        """This does the actuall filling and is called within 
+        fill_missing_profiles 
+        :param signal: data with gaps to be filled
+        :type signal: array
+        :param gaps: sizes of any gaps in data 
+        :type gaps: list
+        :param ind_list: indices where nans are to be inserted
+        :type ins_list: list 
+        
+        :return: filled_signal : data with nans inserted to 
+        where data is missing 
+        :rtype: array
+        """
 
         if signal.ndim == 1 :
 
@@ -304,6 +281,20 @@ class Eprofile_Reader ( object ) :
 
 
     def catch_errors ( self , checks , max_fit_ranges , dt , config , variance , X , Y  ) :
+        """Sorts though the results of the pre-checks and returns the reason for 
+        any failiures
+        :param signal: data with gaps to be filled
+        :type signal: array
+        :param gaps: sizes of any gaps in data 
+        :type gaps: list
+        :param ind_list: indices where nans are to be inserted
+        :type ins_list: list 
+        
+        :return: filled_signal : data with nans inserted to 
+        where data is missing 
+        :rtype: array
+        """
+        
 
         if ~checks [ 0 ] :
 
