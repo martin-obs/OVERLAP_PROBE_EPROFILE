@@ -41,9 +41,9 @@ def get_ov_ok_info_df ( A_dict , rng ) :
     
     time_intervals = [ item for sublist in time_intervals for item in sublist ]
      
-    starts = [ datetime.datetime.fromtimestamp ( ( float ( t.split ( ' ' ) [ 1 ] ) ) ) for t in time_intervals ]
+    starts = [ datetime.datetime.utcfromtimestamp ( ( float ( t.split ( ' ' ) [ 1 ] ) ) ) for t in time_intervals ]
     
-    ends =  [ datetime.datetime.fromtimestamp ( ( float ( t.split ( ' ' ) [ 3 ] ) ) ) for t in time_intervals ]
+    ends =  [ datetime.datetime.utcfromtimestamp ( ( float ( t.split ( ' ' ) [ 3 ] ) ) ) for t in time_intervals ]
     
     time_ints = np.asarray( list ( zip ( starts , ends ) ) )
 
