@@ -167,7 +167,7 @@ class Temperature_model_builder ( object ) :
            
            self.rng_res_change_ind = np.where ( np.diff ( self.rng_res ) !=  0 )
            
-           date_changes = [ d [ -14 :-4 ] for d in self.available_files [ self.rng_res_change_ind ] ]
+           date_changes = [ d [ -14 :-4 ] for d in self.available_files [ self.rng_res_change_ind ] [ 0 ] [ 0 ] ] 
            
            print ('Range resoloution changes on date(s) ' , *date_changes , sep = ', ' )
            
@@ -320,6 +320,8 @@ class Temperature_model_builder ( object ) :
         
         self.diff_r2 = np.ma.diff ( self.r2_1 )
         
+        self.diff_r2 [ 0 ] = 0
+        
         self.bool_run_len = list ( mit.run_length.encode ( abs ( self.diff_r2 )  < self.config ['thrsh_diff_r2'].values [ 0 ] ) )
 
         max_true_count = -1
@@ -413,7 +415,7 @@ class Temperature_model_builder ( object ) :
         
         while self.artefact :
             
-            self.end_ind = self.end_ind = -1
+            self.end_ind = self.end_ind - 1
             
             self._make_regresions_signals_2 ( )
             
@@ -466,12 +468,14 @@ class Temperature_model_builder ( object ) :
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
         fig.set_size_inches(7,4)
         ax = plt.subplot(111)
-        ax.scatter( self.alpha_2 , self.rng )       
+        ax.set_title ( 'Lindernberg 190005 2021/08/31 to 2022/10/24' )
+        ax.plot( self.alpha_2 , self.rng , '-o')       
         ax.grid()
         ax.tick_params(direction="in",which="both")
         ax.set_xlabel('alpha')
-        ax.set_ylim ( [ 0 , 600 ])
-        ax.set_xlim ( [ -1.5 , 3 ])
+        ax.set_ylabel('Range [m]')
+        ax.set_ylim ( [ 0 , 700 ])
+        ax.set_xlim ( [ -4 , 4 ])
         fig.savefig('test_alpha.png',format='png', dpi=300)
 
 

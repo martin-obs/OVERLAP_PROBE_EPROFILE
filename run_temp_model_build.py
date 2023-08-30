@@ -10,15 +10,15 @@ import overlap_probe_eprofile.build_temp_model as btm
 
 import overlap_probe_eprofile.write_to_netcdf as w2nc
 
-path_to_csvs = '/scratch/mosborne/overlap_results/GRANADA/'
+path_to_csvs = '/scratch/mosborne/overlap_results/LINDENBERG/'
 
-path_for_result = '/scratch/mosborne/overlap_results/GRANADA/temp_model/'
+path_for_result = '/scratch/mosborne/overlap_results/LINDENBERG/temp_model/'
 
 config = 'config.txt'
 
 ref_ov = 'TUB120011_20121112_1024.cfg'
 
-TM = btm.Temperature_model_builder ( '2022/01/01' , '2022/12/29' , ref_ov ,  path_to_csvs  , config )
+TM = btm.Temperature_model_builder ( '2021/08/31' , '2022/10/24' , ref_ov ,  path_to_csvs  , config )
 
 TM.check_dates_available ( )
 

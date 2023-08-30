@@ -4,7 +4,11 @@ import numpy as np
 import time
 import traceback
 
-base_path = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2022/' #your L1 directory here
+base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10393/2021/' #your L1 directory here
+
+
+
+base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10395/2021/'
 
 save_path = '/scratch/mosborne/overlap_results/' #your output directory here - a subdirectory with site location name will be created
 
@@ -26,7 +30,7 @@ for m in  months_to_pro [ : ] :
     
     print ( files_to_pro )
     
-    for f in files_to_pro [ 4:5 ]  :
+    for f in files_to_pro [ : ]  :
                 
         print ('working on ' , f [ -11 : -3 ] )
                     
