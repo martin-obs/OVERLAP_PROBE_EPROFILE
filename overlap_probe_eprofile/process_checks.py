@@ -283,13 +283,19 @@ def do_regresion ( rcs_0 , rng , max_available_fit_range , config , ov ) :
     
     signal_all = np.nanmean ( np.log10 ( abs ( rcs_0 ) ) , axis = 0 )
        
-    fl = np.asarray ( np.arange( config [ 'min_fit_length' ].values [ 0 ] , config [ 'max_fit_length' ].values [ 0 ] , config [ 'd_fit_length' ].values [ 0 ] ) )
+    fl = np.asarray ( np.arange ( config [ 'min_fit_length' ].values [ 0 ] , config [ 'max_fit_length' ].values [ 0 ] , config [ 'd_fit_length' ].values [ 0 ] ) )
+    
+    #print (fl)
        
     fb = np.asarray (  np.arange ( config [ 'min_fit_range' ].values [ 0 ] , float ( max_available_fit_range ) , config [ 'd_fit_range' ].values [ 0 ] ) )
+    
+    #print (fb)
     
     top_mask , bottom_mask , n  = _make_mask ( fl , fb , rng )
     
     mask = np.array ( top_mask + bottom_mask, dtype = bool ) 
+    
+    #print ('mask shape = ' , np.shape(mask))
     
     deep_signal = np.repeat ( signal_all [ : , np.newaxis ], np.shape ( mask ) [ 1 ] , axis = 1 )
     

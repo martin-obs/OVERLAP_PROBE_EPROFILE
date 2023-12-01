@@ -8,7 +8,9 @@ base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10393/2021/' #your L1 di
 
 
 
-base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10395/2021/'
+base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10393/2021/'
+
+# = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2021/'
 
 save_path = '/scratch/mosborne/overlap_results/' #your output directory here - a subdirectory with site location name will be created
 
@@ -22,7 +24,7 @@ print ( months_to_pro )
 
 total_start_time = time.time ( )
 
-for m in  months_to_pro [ : ] :
+for m in  months_to_pro [ 1: 2 ] :
     
     file_names =  os.listdir ( base_path + m )
     
@@ -30,7 +32,7 @@ for m in  months_to_pro [ : ] :
     
     print ( files_to_pro )
     
-    for f in files_to_pro [ : ]  :
+    for f in files_to_pro [18 :19 ]  :
                 
         print ('working on ' , f [ -11 : -3 ] )
                     

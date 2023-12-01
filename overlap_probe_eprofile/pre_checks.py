@@ -132,7 +132,7 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
 
                 ind = i_first_over_thresh_std_over_mean [ 0 ] [ 0 ]
 
-                max_available_fit_range = rng [ min_r + ind ]
+                max_available_fit_range = rng [ min_r + ind  ]
 
                 return max_available_fit_range  >=  (config [ 'min_fit_range' ]  + config [ 'min_fit_length' ] ).to_numpy ( ) , max_available_fit_range , std_over_mean [ ind ] 
 
@@ -244,10 +244,10 @@ def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
         max_available_fit_range = np.min ( [ max_available_fit_range , m1 , m2 , m3 ] )
 
-        return max_available_fit_range >=  (config [ 'min_fit_range' ]  + config [ 'min_fit_length' ] ).to_numpy ( ) , max_available_fit_range , X , Y
+        return max_available_fit_range >=  (config [ 'min_fit_range' ]  + config [ 'min_fit_length' ] ).to_numpy ( ) , max_available_fit_range , X , Y , m1 , m2 , m3 
 
     else :
 
-        return False , max_available_fit_range , 0.0 , 0.0 
+        return False , max_available_fit_range , 0.0 , 0.0 , 0.0 , 0.0, 0.0
 
 

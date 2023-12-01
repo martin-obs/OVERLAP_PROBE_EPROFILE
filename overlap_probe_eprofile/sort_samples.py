@@ -65,11 +65,11 @@ def get_ov_ok_info_df ( A_dict , rng ) :
     
     max_rng_for_interval = [ item for sublist in [ np.repeat( np.max ( r ) , len ( r ) ) for r in upper ] for item in sublist ]
     
-    print (len(ts))
+    #print (len(ts))
     
     print (len(ov_fcs) , len(temperatures))
     
-    print (len(max_rng_for_interval))
+    #print (len(max_rng_for_interval))
          
     return time_ints , times , lower , upper , max_rng_for_interval , ov_fcs , temperatures
 
@@ -165,6 +165,8 @@ def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
         condition1 = check_variance (  deep_signal  , ov_fcs , times , dt  , config )
         
         condition2 = check_rel_grad_magn ( rng  , max26 , ov_fcs  , times , deep_signal , config )
+        
+        print ('After good tests = ' , sum(condition1*condition2))
           
         return condition1 * condition2
     
@@ -295,7 +297,7 @@ def remove_failed ( results_dict , passed_inds , rng  , config ) :
     
     final_ovs , final_ov  ,  outlier_pass_inds = remove_outliers ( ovs , rng , config )
     
-    print ('final ovs = ' , np.shape ( final_ovs ) )
+    #print ('final ovs b4 outlier removal= ' , np.shape ( final_ovs ) )
     
     intervals = intervals [ outlier_pass_inds, :]
     
@@ -327,7 +329,7 @@ def remove_outliers (  ovs , rng , config ) :
    
 
     outliers_plus = pc_50 + whiskers*(pc_75-pc_25)
-        
+            
     outliers_minus = pc_50 - whiskers*(pc_75-pc_25)
     
     ov_final = np.zeros ( len ( rng ) ) 
@@ -336,7 +338,7 @@ def remove_outliers (  ovs , rng , config ) :
 
     for r , ov_func in enumerate ( ovs ) :
 
-        if  ( all ( ovs [ r , : ]  >= outliers_minus ) ) and ( all (ovs[r,:]   <= outliers_plus ) ) :
+        if  not (  ( any ( ovs [ r , : ]  < outliers_minus ) ) | ( any ( ovs [ r , : ] > outliers_plus ) ) ) :
             
             ov_final = np.vstack ( ( ov_final , ov_func ) )
             
@@ -345,6 +347,8 @@ def remove_outliers (  ovs , rng , config ) :
         else:
             
             outlier_pass_inds.append ( False )
+            
+    print ('after outlier removal = ' , np.shape(ov_final[1:,:]))
     
     return ov_final [ 1 : , : ] , np.nanmean ( ov_final , axis = 0 ) , outlier_pass_inds
         

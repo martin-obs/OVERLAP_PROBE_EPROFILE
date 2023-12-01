@@ -20,8 +20,9 @@ import datetime
 import pytz
 import pandas as pd
 from scipy import stats
+from scipy.interpolate import interpn
 import os
-
+import matplotlib.pyplot as plt
 
 import overlap_probe_eprofile.pre_checks as pc
 import overlap_probe_eprofile.process_checks as proc
@@ -67,6 +68,8 @@ class Eprofile_Reader ( object ) :
 
         self.instrument_serial_number = getattr ( L_nc , 'instrument_serial_number' ) 
         
+        
+        
     def get_constants ( self , config , ov ) :
         
         """Reads in a text file of settings / threshold values. Those that can 
@@ -77,7 +80,7 @@ class Eprofile_Reader ( object ) :
         
         :param config: path to text file containing settings and thresholds
         :type config: str
-        :param ov: path to test file containing a default overlap function. The
+        :param ov: path to text file containing a default overlap function. The
         resolution can be different to the data contained in data_file, but 
         the function will be interpolated into a native resolution
         :type ov : str
@@ -116,18 +119,27 @@ class Eprofile_Reader ( object ) :
         config_df [ 'min_slope' ] = -2.5*1e-4
 
         self.config = config_df
+        
+
 
 
     def _check_ov_range_res_same_as_data (self):
         """Checks that the range resolution of the default overlap function is
-        the same as the data file
+        the same as the data file. If not the data is
+        interpolated onto the ref_ov grid!
         """
         
         if len ( self.ov ) != len ( self.rng ) :
+                   
+            ov_native_rng = np.arange ( 0, 15344, 14.984999 )
             
-            ov_native_rng = np.arange ( 14.985 ,  15344.64+14.985 , 14.985 )
+            t_mesh, r_mesh = np.meshgrid (  self.raw_time , ov_native_rng )
             
-            self.ov = np.interp ( self.rng ,  ov_native_rng , self.ov )
+            rcs_0 = interpn ( ( np.asarray ( self.raw_time ), np.asarray ( self.rng ) ) , self.rcs_0 , ( t_mesh , r_mesh ), bounds_error=False , fill_value = 0 ,  method = 'linear' )
+            
+            self.rcs_0 = np.transpose(rcs_0)
+      
+            self.rng = ov_native_rng 
 
     def remove_some (self ) :
         
@@ -150,8 +162,8 @@ class Eprofile_Reader ( object ) :
     def create_time ( self ):
 
         """Creates more convinient time stamps. The time stamp that comes with
-        the data is in fractional days since epoch and it is convenient to 
-        seconds since epoch (UNIX time) and the convert this into datetime 
+        the data is in fractional days since epoch and it is convenient to work
+        into seconds since epoch (UNIX time) and then convert this into datetime 
         objects
         """
        
@@ -207,7 +219,7 @@ class Eprofile_Reader ( object ) :
     def __make_fill_times ( self , signal , gaps , mode_delta , ind_list ) :
 
         """Having found gaps, make time stamps to fill and so make a 
-        continuous time        
+        continuous time variable        
         :param signal: data with gaps to be filled
         :type signal: array
         :param gaps: sizes of any gaps in data 
@@ -218,7 +230,7 @@ class Eprofile_Reader ( object ) :
         :type ins_list: list 
         :return: filled_signal : data with nans inserted to 
         where data is missing 
-        :rtype: array
+        :type: array
         """
 
         gap_inds = np.where ( gaps > 1 )
@@ -283,17 +295,21 @@ class Eprofile_Reader ( object ) :
 
     def catch_errors ( self , checks , max_fit_ranges , dt , config , variance , X , Y  ) :
         """Sorts though the results of the pre-checks and returns the reason for 
-        any failiures
-        :param signal: data with gaps to be filled
-        :type signal: array
-        :param gaps: sizes of any gaps in data 
-        :type gaps: list
-        :param ind_list: indices where nans are to be inserted
-        :type ins_list: list 
-        
-        :return: filled_signal : data with nans inserted to 
-        where data is missing 
-        :rtype: array
+        failiure
+        :param checks: resuts of pre-checks
+        :type checks: list of bools
+        :param max_fit_ranges: list of max fitting range after each pre-check
+        :type max_fit_ranges: list
+        :param dt: datetimes for current time window
+        :type ins_list: list of datetime objects
+        :param config: class object containing varios config thresholds
+        :type config: class object
+        :param variance: variance at max fitting range after variance check
+        :type variance: float
+        :param X: signal gradient in X direction at max fitting range after grad check
+        :type variance: float
+        :param Y: signal gradient in Y direction at max fitting range after grad check
+        :type variance: float
         """
         
 
@@ -307,21 +323,23 @@ class Eprofile_Reader ( object ) :
 
         if ~checks [ 2 ] :
 
-            return  'lowest cloud base is ' + str ( round ( max_fit_ranges[0] , 1 ) ) , 'm should be ' + str ( self.config [ 'min_fit_range' ].values [ 0 ] ) + 'm'
+            return  'lowest cloud base is ' + str ( round ( max_fit_ranges[0] , 1 ) ) + 'm should be ' + str ( self.config [ 'min_fit_range' ].values [ 0 ] ) + 'm'
 
         if ~checks [ 3 ] :
 
-            return 'failed variance check ' + str ( round ( variance , 3 ) ) +  ' at ' , str ( round ( max_fit_ranges[1] , 1 ) ) + 'm'
+            return 'failed variance check ' + str ( round ( variance , 3 ) ) +  ' at ' + str ( round ( max_fit_ranges[1] , 1 ) ) + 'm'
 
         if ~checks [ 4 ] :
 
-            return 'failed grad check: X = ' + str ( round ( X , 3 ) ) + ' Y = ' + str ( round ( Y, 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 2 ] , 1 ) ) + 'm'
+            return 'failed grad check: X = ' + str ( round ( X , 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 3 ] , 1 ) )  + ' Y = ' + str ( round ( Y, 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 4 ] , 1 ) ) + ' finaly ' + str ( round( max_fit_ranges [ 2 ] , 1 ) ) + 'm'
         
     def write_result_to_csv ( self , save_path ) : 
         
         '''
         
-        Create results cvs and save to file
+        Create a results data frame and save to file
+        :param save_path: path to location results csv will be save in
+        :type save_path: string
         
         '''
     
@@ -426,7 +444,13 @@ class Eprofile_Reader ( object ) :
         
         mode_diff = stats.mode ( np.asarray ( end_inds ) - np.asarray ( start_inds ) )
         
-        end_inds = start_inds + mode_diff.mode
+        #print ('mode diff = ' , mode_diff.mode)
+        
+        end_inds = np.asarray(start_inds) + mode_diff.mode
+        
+        end_inds = end_inds.tolist()
+        
+        #print ( end_inds )
         
         overlap_functions = np.empty_like ( self.ov )
         
@@ -448,9 +472,9 @@ class Eprofile_Reader ( object ) :
 
                 check4 , max_available_fit_range2 , variance = pc.running_variance ( check3 , self.rcs_0 [ s : f , : ] , self.rng , dt [ s : f ] , self.config , max_available_fit_range1 )
 
-                check5 , max_available_fit_range , X , Y  = pc.check_grads ( check4 ,  self.rcs_0 [ s : f , : ]  , self.rng , self.config , max_available_fit_range2 )
+                check5 , max_available_fit_range , X , Y , m1 , m2 , m3  = pc.check_grads ( check4 ,  self.rcs_0 [ s : f , : ]  , self.rng , self.config , max_available_fit_range2 )
 
-                max_fit_ranges = [ max_available_fit_range1 , max_available_fit_range2 , max_available_fit_range ]
+                max_fit_ranges = [ max_available_fit_range1 , max_available_fit_range2 , max_available_fit_range , m1 , m2 , m3 ]
 
                 if check1 and check2 and check3 and check4 and check5:
 
@@ -465,12 +489,12 @@ class Eprofile_Reader ( object ) :
                     
                     checks = [ check1 , check2 , check3 , check4 , check5 ]
                     
-                    results [ int_str ] [ 'pre-check results' ] = self.catch_errors ( checks , max_fit_ranges , dt [ s : f ] , self.config , variance , X , Y  )
+                    results [ int_str ] [ 'pre-check results' ] = self.catch_errors ( checks , max_fit_ranges , dt [ s : f ] , self.config , variance , X , Y )
                     
                     results [ int_str ] [ 'data_frame' ] = pd.DataFrame(data = [False], columns = ['pass_all'])
                     
         self.results = results
-       
+        
         passed_inds = srt.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
         
         self.passed_inds = passed_inds
