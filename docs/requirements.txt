@@ -1,1 +1,9 @@
 sphinx_rtd_theme
+numpy'
+netCDF4
+scipy
+matplotlib
+datetime
+pandas
+matplotlib
+more_itertools
