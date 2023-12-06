@@ -1,0 +1,757 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>overlap_probe_eprofile.process_L1 &mdash; Math 00.00.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Math
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">overlap_probe_eprofile</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Math</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>overlap_probe_eprofile.process_L1</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for overlap_probe_eprofile.process_L1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;Class to hold processing tools for CHM15k ceilometer data. The Class methods </span>
+<span class="sd">   are used to read in a CHM15k data file, prepare it for processing</span>
+<span class="sd">   and then loop over defined time windows applying various checks contained in</span>
+<span class="sd">   overlap_probe_eprofile.pre_checks, overlap_probe_eprofile.process_checks, and</span>
+<span class="sd">   overlap_probe_eprofile.sort_samples</span>
+<span class="sd">   </span>
+<span class="sd">   A reference overalp function and a configuration file are necessary to start </span>
+<span class="sd">   the processing. This module was developed using a specific overlap function, </span>
+<span class="sd">   that is &quot;TUB120011_20121112_1024&quot;, for which empirical thresholds and settings</span>
+<span class="sd">   are included in the config.txt file. Using a different reference overlap would </span>
+<span class="sd">   probably require different values for these thresholds.  </span>
+<span class="sd">   </span>
+<span class="sd">   This is a refactoring of code written by Maxime Hervo, Rolf Ruefenacht and </span>
+<span class="sd">   Melania Van Hove in Matlab</span>
+<span class="sd">   </span>
+<span class="sd">   @author martin osborne: martin.osborne@metoffice.gov.uk</span>
+<span class="sd">   </span>
+<span class="sd">   </span>
+<span class="sd">   See also</span>
+<span class="sd">   --------</span>
+<span class="sd">   overlap_probe_eprofile.pre_checks</span>
+<span class="sd">   overlap_probe_eprofile.process_checks</span>
+<span class="sd">   overlap_probe_eprofile.sort_samples</span>
+<span class="sd">   </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">nc</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interpn</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">overlap_probe_eprofile.pre_checks</span> <span class="k">as</span> <span class="nn">pc</span>
+<span class="kn">import</span> <span class="nn">overlap_probe_eprofile.process_checks</span> <span class="k">as</span> <span class="nn">proc</span>
+<span class="kn">import</span> <span class="nn">overlap_probe_eprofile.sort_samples</span> <span class="k">as</span> <span class="nn">srt</span>
+
+
+<div class="viewcode-block" id="Eprofile_Reader"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader">[docs]</a><span class="k">class</span> <span class="nc">Eprofile_Reader</span> <span class="p">(</span> <span class="nb">object</span> <span class="p">)</span> <span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to read CHM15k data file and hold the class methods needed to </span>
+<span class="sd">    produce corrected overlap functions. Data file should be a standard format</span>
+<span class="sd">    L1 E-PROFILE file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    data_file : string</span>
+<span class="sd">        full path to an L1 file of CHM15k data.</span>
+<span class="sd">  </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">data_file</span>  <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">L_nc</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span> <span class="n">data_file</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_time</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;time&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="p">)</span> 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;range&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;rcs_0&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;cloud_base_height&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sci</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;sci&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;range_resol&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">internal_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span> <span class="n">L_nc</span><span class="o">.</span><span class="n">variables</span> <span class="p">[</span> <span class="s1">&#39;temp_int&#39;</span> <span class="p">]</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt_mod_number</span> <span class="o">=</span> <span class="nb">getattr</span> <span class="p">(</span> <span class="n">L_nc</span> <span class="p">,</span> <span class="s1">&#39;optical_module_id&#39;</span> <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_location</span> <span class="o">=</span> <span class="nb">getattr</span> <span class="p">(</span> <span class="n">L_nc</span> <span class="p">,</span> <span class="s1">&#39;site_location&#39;</span> <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">wigos_station_id</span> <span class="o">=</span> <span class="nb">getattr</span> <span class="p">(</span> <span class="n">L_nc</span> <span class="p">,</span> <span class="s1">&#39;wigos_station_id&#39;</span> <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_id</span> <span class="o">=</span> <span class="nb">getattr</span> <span class="p">(</span> <span class="n">L_nc</span> <span class="p">,</span> <span class="s1">&#39;instrument_id&#39;</span> <span class="p">)</span> 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_serial_number</span> <span class="o">=</span> <span class="nb">getattr</span> <span class="p">(</span> <span class="n">L_nc</span> <span class="p">,</span> <span class="s1">&#39;instrument_serial_number&#39;</span> <span class="p">)</span> 
+        
+        
+        
+<div class="viewcode-block" id="Eprofile_Reader.get_constants"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.get_constants">[docs]</a>    <span class="k">def</span> <span class="nf">get_constants</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">config</span> <span class="p">,</span> <span class="n">ov</span> <span class="p">)</span> <span class="p">:</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads in and sorts settings / threshold values. Further threshold</span>
+<span class="sd">        values are computed from a combination of these values and data_file </span>
+<span class="sd">        dimentions. The default overlap function is also read in from a text file.</span>
+<span class="sd">        Currently saved as a Pandas dataframe, this will be changed</span>
+<span class="sd">        to a named tuple in future for easier access.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        config : string </span>
+<span class="sd">            path to text file containing settings and thresholds</span>
+<span class="sd">        ov : sting</span>
+<span class="sd">            path to text file containing a default overlap function. The</span>
+<span class="sd">            resolution can be different to the data contained in data_file, but </span>
+<span class="sd">            the data will be interpolated into a native resolution. This module </span>
+<span class="sd">            was developed using a specific overlap function, that is </span>
+<span class="sd">            &quot;TUB120011_20121112_1024&quot;, for which empirical thresholds and settings</span>
+<span class="sd">            are included in the config.txt file. Using a different reference </span>
+<span class="sd">            overlap would probably need different values for these thresholds. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">config_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span> <span class="p">(</span> <span class="n">config</span> <span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">)</span>
+
+        <span class="n">config_df</span> <span class="o">=</span> <span class="n">config_df</span><span class="o">.</span><span class="n">transpose</span> <span class="p">(</span> <span class="p">)</span>
+
+        <span class="n">config_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">config_df</span><span class="o">.</span><span class="n">iloc</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+
+        <span class="n">config_df</span> <span class="o">=</span> <span class="n">config_df</span><span class="o">.</span><span class="n">drop</span> <span class="p">(</span> <span class="n">config_df</span><span class="o">.</span><span class="n">index</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span> <span class="p">(</span> <span class="n">ov</span> <span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="p">,</span> <span class="n">skiprows</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span> <span class="n">nrows</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_ov_range_res_same_as_data</span> <span class="p">(</span> <span class="p">)</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;d_fit_range&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng_res</span> <span class="p">)</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="o">&gt;</span> <span class="mf">0.6</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">]</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_overlap_valid&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">]</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;max_fit_length&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;max_fit_range&#39;</span> <span class="p">]</span> <span class="o">-</span> <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;d_fit_length&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;d_fit_range&#39;</span> <span class="p">]</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_expected_slope&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span> <span class="p">(</span> <span class="mi">10</span> <span class="p">)</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">*</span> <span class="mf">1e-6</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;max_expected_slope&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span> <span class="p">(</span> <span class="mi">10</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="mf">1e-6</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;first_range_gradY&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_nb_good_samples&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span> <span class="p">(</span> <span class="n">config_df</span> <span class="p">[</span><span class="s1">&#39;good_samples_proportion&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">config_df</span> <span class="p">[</span><span class="s1">&#39;min_nb_samples&#39;</span><span class="p">]</span> <span class="p">)</span>
+
+        <span class="n">config_df</span> <span class="p">[</span> <span class="s1">&#39;min_slope&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="o">*</span><span class="mf">1e-4</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config_df</span></div>
+        
+
+
+
+<div class="viewcode-block" id="Eprofile_Reader.check_ov_range_res_same_as_data"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.check_ov_range_res_same_as_data">[docs]</a>    <span class="k">def</span> <span class="nf">check_ov_range_res_same_as_data</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">)</span> <span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks that the data range resolution is the same as the reference overlap </span>
+<span class="sd">        function . If not the data is interpolated onto the grid of the reference </span>
+<span class="sd">        overlap function. This has the effect of smothing the data slightly if it </span>
+<span class="sd">        was originally on a finer grid. This matches the behaviour of the original </span>
+<span class="sd">        Matlab code.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="nb">len</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">)</span> <span class="p">:</span>
+                   
+            <span class="n">ov_native_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span> <span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">15344</span><span class="p">,</span> <span class="mf">14.984999</span> <span class="p">)</span>
+            
+            <span class="n">t_mesh</span><span class="p">,</span> <span class="n">r_mesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span> <span class="p">(</span>  <span class="bp">self</span><span class="o">.</span><span class="n">raw_time</span> <span class="p">,</span> <span class="n">ov_native_rng</span> <span class="p">)</span>
+            
+            <span class="n">rcs_0</span> <span class="o">=</span> <span class="n">interpn</span> <span class="p">(</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_time</span> <span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">)</span> <span class="p">)</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">,</span> <span class="p">(</span> <span class="n">t_mesh</span> <span class="p">,</span> <span class="n">r_mesh</span> <span class="p">),</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span> <span class="p">,</span> <span class="n">fill_value</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">,</span>  <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span> <span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">rcs_0</span><span class="p">)</span>
+      
+            <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">ov_native_rng</span> </div>
+
+<div class="viewcode-block" id="Eprofile_Reader.remove_some"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.remove_some">[docs]</a>    <span class="k">def</span> <span class="nf">remove_some</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">)</span> <span class="p">:</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This is a utility used during code development to ensure that the code </span>
+<span class="sd">        works with data files with missing profiles - please ignore</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">li</span> <span class="o">=</span> <span class="p">[</span> <span class="o">*</span><span class="nb">range</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">100</span> <span class="p">)</span> <span class="p">,</span> <span class="o">*</span><span class="nb">range</span> <span class="p">(</span><span class="mi">1020</span><span class="p">,</span><span class="mi">2010</span><span class="p">)</span> <span class="p">]</span>
+
+        <span class="n">li</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="nb">range</span> <span class="p">(</span><span class="mi">4000</span><span class="p">,</span><span class="mi">4001</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="p">,</span> <span class="n">li</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">,</span> <span class="n">li</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cbh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cbh</span> <span class="p">,</span> <span class="n">li</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sci</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">sci</span> <span class="p">,</span> <span class="n">li</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Eprofile_Reader.create_time"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.create_time">[docs]</a>    <span class="k">def</span> <span class="nf">create_time</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates more convinient time stamps. The time stamp that comes with</span>
+<span class="sd">        the data is in fractional days since epoch and it is convenient to work</span>
+<span class="sd">        into seconds since epoch (UNIX time) and then convert this into datetime </span>
+<span class="sd">        objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+       
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt_raw</span> <span class="o">=</span> <span class="p">[</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="mi">1970</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">t</span> <span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_time</span> <span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="p">[</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;1s&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_raw</span> <span class="p">]</span>  <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="p">[</span> <span class="n">t</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="p">]</span> <span class="p">)</span> </div>
+        
+
+<div class="viewcode-block" id="Eprofile_Reader.fill_gaps"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.fill_gaps">[docs]</a>    <span class="k">def</span> <span class="nf">fill_gaps</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fills in any missing profiles within the start and end time of data_file</span>
+<span class="sd">        with nans by calling make_fill_times and find_and_fill. Any time steps in</span>
+<span class="sd">        the data_file time array that are bigger than 1.5 x the mode time step are </span>
+<span class="sd">        assumed to be gaps and are filled with nans</span>
+<span class="sd">        </span>
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        </span>
+<span class="sd">        overlap_probe_eprofile.process_L1.Eprofile_Reader.make_fill_times</span>
+<span class="sd">        </span>
+<span class="sd">        overlap_probe_eprofile.process_L1.Eprofile_Reader.find_and_fill</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tdelta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="p">)</span>
+
+        <span class="n">mode_delta</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mode</span> <span class="p">(</span> <span class="n">tdelta</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+
+        <span class="n">gaps</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span> <span class="p">(</span> <span class="p">(</span> <span class="n">tdelta</span>  <span class="o">/</span> <span class="n">mode_delta</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">gaps</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">:</span>
+
+            <span class="n">ind_list</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span> <span class="p">(</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">int</span> <span class="p">)</span>
+
+            <span class="n">ind_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span> <span class="p">(</span> <span class="n">ind_list</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_fill_times</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="p">,</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">mode_delta</span> <span class="p">,</span> <span class="n">ind_list</span> <span class="p">)</span>
+
+            <span class="n">rcs_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_and_fill</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">,</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">ind_list</span><span class="p">)</span>
+
+            <span class="n">cbh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_and_fill</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbh</span> <span class="p">,</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">ind_list</span> <span class="p">)</span>
+
+            <span class="n">cbh</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_flag</span> <span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">cbh</span> <span class="o">=</span> <span class="n">cbh</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">sci</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_and_fill</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">sci</span> <span class="p">,</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">ind_list</span> <span class="p">)</span>
+
+            <span class="n">rcs_0</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_flag</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="o">=</span> <span class="n">rcs_0</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">missing_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">)</span>
+
+            <span class="n">missing_flag</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">missing_flag</span> <span class="o">=</span> <span class="n">missing_flag</span><span class="o">.</span><span class="n">astype</span> <span class="p">(</span> <span class="nb">bool</span> <span class="p">)</span></div>
+            
+
+<div class="viewcode-block" id="Eprofile_Reader.make_fill_times"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.make_fill_times">[docs]</a>    <span class="k">def</span> <span class="nf">make_fill_times</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">signal</span> <span class="p">,</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">mode_delta</span> <span class="p">,</span> <span class="n">ind_list</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Having found any gaps in the data, this function is called by </span>
+<span class="sd">        fill_gaps to make a continuous time variable with datetimes inserted </span>
+<span class="sd">        where data was missing</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        signal : 2D array</span>
+<span class="sd">            data with gaps to be filled</span>
+<span class="sd">        gaps : list </span>
+<span class="sd">            sizes of any gaps in data </span>
+<span class="sd">        mode_delta : float</span>
+<span class="sd">            mode lenght of time step in data </span>
+<span class="sd">        ind_list : list</span>
+<span class="sd">            indices where nans are to be inserted </span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        filled_time_signal : 2D array</span>
+<span class="sd">            datetime array with appropriate datetimes inserted where data is missing </span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        
+
+        <span class="n">gap_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">gaps</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">)</span>
+
+        <span class="n">gap_len</span> <span class="o">=</span> <span class="n">gaps</span> <span class="p">[</span> <span class="n">gap_inds</span> <span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">sts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span> <span class="p">(</span><span class="n">signal</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">[</span> <span class="n">gap_inds</span> <span class="p">]</span>
+
+        <span class="n">ends</span> <span class="o">=</span> <span class="n">sts</span> <span class="o">+</span> <span class="n">gap_len</span> <span class="o">*</span> <span class="n">mode_delta</span>
+
+        <span class="n">t_fill_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span> <span class="p">(</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span> <span class="p">(</span> <span class="n">s</span> <span class="p">,</span> <span class="n">e</span> <span class="p">,</span> <span class="n">mode_delta</span> <span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span> <span class="n">sts</span> <span class="p">,</span> <span class="n">ends</span> <span class="p">)</span> <span class="p">]</span> <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">)</span>
+
+        <span class="n">filled_time_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span> <span class="p">(</span> <span class="nb">int</span> <span class="p">(</span> <span class="nb">sum</span> <span class="p">(</span> <span class="n">gaps</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">)</span>
+
+        <span class="n">filled_time_signal</span> <span class="p">[</span> <span class="n">ind_list</span> <span class="p">]</span> <span class="o">=</span> <span class="n">signal</span>
+
+        <span class="n">missing_flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span> <span class="p">(</span> <span class="nb">int</span> <span class="p">(</span> <span class="nb">sum</span> <span class="p">(</span> <span class="n">gaps</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">)</span>
+
+        <span class="n">missing_flag</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span> 
+
+        <span class="n">missing_flag</span> <span class="p">[</span> <span class="n">ind_list</span> <span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_flag</span> <span class="o">=</span> <span class="n">missing_flag</span><span class="o">.</span><span class="n">astype</span> <span class="p">(</span> <span class="nb">bool</span> <span class="p">)</span>
+
+        <span class="n">fill_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">filled_time_signal</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span>
+
+        <span class="n">filled_time_signal</span> <span class="p">[</span> <span class="n">fill_inds</span> <span class="p">]</span> <span class="o">=</span> <span class="n">t_fill_array</span>
+
+        <span class="k">return</span> <span class="n">filled_time_signal</span></div>
+
+
+<div class="viewcode-block" id="Eprofile_Reader.find_and_fill"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.find_and_fill">[docs]</a>    <span class="k">def</span> <span class="nf">find_and_fill</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">signal</span> <span class="p">,</span> <span class="n">gaps</span> <span class="p">,</span> <span class="n">ind_list</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This does the actuall filling and is called within </span>
+<span class="sd">        fill_gaps</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        signal : array  </span>
+<span class="sd">            data with gaps to be filled</span>
+<span class="sd">        gaps : list </span>
+<span class="sd">            sizes of any gaps in data </span>
+<span class="sd">        ind_list : list</span>
+<span class="sd">            indices where nans are to be inserted</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------        </span>
+
+<span class="sd">        filled_signal : array</span>
+<span class="sd">            data with columns of nans inserted where data is missing </span>
+<span class="sd">            </span>
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        overlap_probe_eprofile.process_L1.Eprofile_Reader.fill_gaps</span>
+<span class="sd">        </span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">signal</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">:</span>
+
+            <span class="n">filled_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span> <span class="p">(</span> <span class="nb">int</span> <span class="p">(</span> <span class="nb">sum</span> <span class="p">(</span> <span class="n">gaps</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="p">)</span>
+
+            <span class="n">filled_signal</span> <span class="p">[</span> <span class="n">ind_list</span> <span class="p">]</span> <span class="o">=</span> <span class="n">signal</span>
+
+        <span class="k">elif</span> <span class="n">signal</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="p">:</span>
+
+            <span class="n">filled_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span> <span class="nb">int</span> <span class="p">(</span> <span class="nb">sum</span> <span class="p">(</span> <span class="n">gaps</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">shape</span> <span class="p">(</span> <span class="n">signal</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span> 
+
+            <span class="n">filled_signal</span> <span class="p">[</span> <span class="n">ind_list</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="o">=</span> <span class="n">signal</span>
+
+        <span class="k">return</span> <span class="n">filled_signal</span></div>
+
+
+<div class="viewcode-block" id="Eprofile_Reader.catch_errors"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.catch_errors">[docs]</a>    <span class="k">def</span> <span class="nf">catch_errors</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">checks</span> <span class="p">,</span> <span class="n">max_fit_ranges</span> <span class="p">,</span> <span class="n">dt</span> <span class="p">,</span> <span class="n">config</span> <span class="p">,</span> <span class="n">variance</span> <span class="p">,</span> <span class="n">X</span> <span class="p">,</span> <span class="n">Y</span>  <span class="p">)</span> <span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sorts though the results of the pre-checks module and returns the </span>
+<span class="sd">        reason for failiure as a string.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        checks : list of bools </span>
+<span class="sd">            resuts of pre-checks</span>
+<span class="sd">        max_fit_ranges : list </span>
+<span class="sd">            list of max fitting range after each pre-check</span>
+<span class="sd">        dt : list of datetime objects</span>
+<span class="sd">            datetimes for current time window</span>
+<span class="sd">        config : class object </span>
+<span class="sd">            object containing varios config thresholds</span>
+<span class="sd">        variance : float </span>
+<span class="sd">            variance at max fitting range after variance check</span>
+<span class="sd">        X : float </span>
+<span class="sd">            signal gradient in X direction at max fitting range after grad check</span>
+<span class="sd">        Y : float </span>
+<span class="sd">            signal gradient in Y direction at max fitting range after grad check</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        reason for failiure with details : string</span>
+
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        overlap_probe_eprofile.pre_checks module</span>
+<span class="sd">            Returns True of False plus some details for various pre-checks.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+
+        <span class="k">if</span> <span class="o">~</span><span class="n">checks</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">:</span>
+
+            <span class="k">return</span> <span class="s1">&#39;contains no data&#39;</span> 
+
+        <span class="k">if</span> <span class="o">~</span><span class="n">checks</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">:</span>
+
+            <span class="k">return</span>  <span class="s1">&#39;at least one sci~=0&#39;</span>
+
+        <span class="k">if</span> <span class="o">~</span><span class="n">checks</span> <span class="p">[</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">:</span>
+
+            <span class="k">return</span>  <span class="s1">&#39;lowest cloud base is &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span> <span class="p">(</span> <span class="n">max_fit_ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;m should be &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;m&#39;</span>
+
+        <span class="k">if</span> <span class="o">~</span><span class="n">checks</span> <span class="p">[</span> <span class="mi">3</span> <span class="p">]</span> <span class="p">:</span>
+
+            <span class="k">return</span> <span class="s1">&#39;failed variance check &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span> <span class="p">(</span> <span class="n">variance</span> <span class="p">,</span> <span class="mi">3</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span>  <span class="s1">&#39; at &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span> <span class="p">(</span> <span class="n">max_fit_ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;m&#39;</span>
+
+        <span class="k">if</span> <span class="o">~</span><span class="n">checks</span> <span class="p">[</span> <span class="mi">4</span> <span class="p">]</span> <span class="p">:</span>
+
+            <span class="k">return</span> <span class="s1">&#39;failed grad check: X = &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span> <span class="p">(</span> <span class="n">X</span> <span class="p">,</span> <span class="mi">3</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; at &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span><span class="p">(</span> <span class="n">max_fit_ranges</span> <span class="p">[</span> <span class="mi">3</span> <span class="p">]</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span>  <span class="o">+</span> <span class="s1">&#39; Y = &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span> <span class="p">(</span> <span class="n">Y</span><span class="p">,</span> <span class="mi">3</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; at &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span><span class="p">(</span> <span class="n">max_fit_ranges</span> <span class="p">[</span> <span class="mi">4</span> <span class="p">]</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; finaly &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span><span class="p">(</span> <span class="n">max_fit_ranges</span> <span class="p">[</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;m&#39;</span></div>
+        
+<div class="viewcode-block" id="Eprofile_Reader.write_result_to_csv"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.write_result_to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">write_result_to_csv</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">save_path</span> <span class="p">)</span> <span class="p">:</span> 
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        Create a results data frame and save to file</span>
+<span class="sd">        :param save_path: path to location results csv will be save in</span>
+<span class="sd">        :type save_path: string</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    
+        <span class="n">times_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;start&#39;</span> <span class="p">,</span> <span class="s1">&#39;end&#39;</span> <span class="p">]</span> <span class="p">)</span>
+        
+        <span class="n">ov_columns</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">str</span> <span class="p">(</span> <span class="n">r</span> <span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">ov_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_ovs</span> <span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">ov_columns</span> <span class="p">)</span>
+        
+        <span class="n">rng_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng_intervals</span> <span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;rng lower&#39;</span><span class="p">,</span><span class="s1">&#39;rng upper&#39;</span> <span class="p">]</span> <span class="p">)</span>
+        
+        <span class="n">temps</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperatures</span> <span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;internal_temperature&#39;</span> <span class="p">]</span> <span class="p">)</span>
+        
+        <span class="n">temps</span> <span class="p">[</span> <span class="s1">&#39;range_resolution&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng_res</span>
+        
+        <span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span> <span class="p">(</span> <span class="p">[</span> <span class="n">times_df</span> <span class="p">,</span> <span class="n">rng_df</span> <span class="p">,</span> <span class="n">temps</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov_df</span>  <span class="p">]</span> <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">)</span>
+              
+        <span class="n">location</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">site_location</span><span class="o">.</span><span class="n">split</span> <span class="p">(</span> <span class="s1">&#39;,&#39;</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+        
+        <span class="n">complete_path</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="p">(</span> <span class="n">save_path</span> <span class="p">,</span> <span class="n">location</span> <span class="p">)</span> <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="n">complete_path</span> <span class="p">)</span>  <span class="p">:</span>
+            
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span> <span class="n">complete_path</span> <span class="p">)</span>
+               
+        <span class="n">results_name</span> <span class="o">=</span> <span class="s1">&#39;ov_results_&#39;</span> <span class="o">+</span> <span class="n">location</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt_mod_number</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span><span class="o">.</span><span class="n">date</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+               
+        <span class="n">meta_data</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;opt_mod_number = &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt_mod_number</span> <span class="p">,</span><span class="s1">&#39;site_location = &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_location</span> <span class="p">,</span>
+                     <span class="s1">&#39;wigos_station_id = &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">wigos_station_id</span> <span class="p">,</span> <span class="s1">&#39;instrument_id = &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument_id</span> <span class="p">,</span>
+                     <span class="s1">&#39;instrument_serial_number = &#39;</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">instrument_serial_number</span> <span class="p">]</span>
+        
+        <span class="n">path_n_name</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="p">(</span> <span class="n">complete_path</span> <span class="p">,</span> <span class="n">results_name</span> <span class="p">)</span> <span class="p">)</span>
+              
+        <span class="k">with</span> <span class="nb">open</span> <span class="p">(</span>  <span class="n">path_n_name</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span> <span class="p">)</span> <span class="k">as</span> <span class="n">f</span> <span class="p">:</span>
+        
+            <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span> <span class="p">(</span> <span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">meta_data</span> <span class="p">:</span>
+            
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span> <span class="p">(</span> <span class="n">l</span><span class="o">.</span><span class="n">rstrip</span>  <span class="p">(</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">content</span> <span class="p">)</span>
+        
+        <span class="n">results_df</span><span class="o">.</span><span class="n">to_csv</span> <span class="p">(</span>  <span class="n">path_n_name</span> <span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;a&#39;</span> <span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span> <span class="p">)</span></div>
+          
+<div class="viewcode-block" id="Eprofile_Reader.get_final_overlapfunction"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.get_final_overlapfunction">[docs]</a>    <span class="k">def</span> <span class="nf">get_final_overlapfunction</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">save_path</span> <span class="p">)</span> <span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">passed_inds</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> 
+        
+            <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng_intervals</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_ovs</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperatures</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_ov</span> <span class="o">=</span> <span class="n">srt</span><span class="o">.</span><span class="n">remove_failed</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">passed_inds</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_result_to_csv</span> <span class="p">(</span> <span class="n">save_path</span>  <span class="p">)</span></div>
+                
+
+      
+
+<div class="viewcode-block" id="Eprofile_Reader.loop_over_time"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.process_L1.Eprofile_Reader.loop_over_time">[docs]</a>    <span class="k">def</span> <span class="nf">loop_over_time</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">)</span> <span class="p">:</span>
+<span class="w">                </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loop through data with a window &#39;time_interval_length&#39; wide and </span>
+<span class="sd">        shifting by &#39;d_fit_time&#39; each loop, as defined in config.txt. Because</span>
+<span class="sd">        of issues comparing datetimes, time deltas and timestamps created from </span>
+<span class="sd">        fractional days since midnight, and also because the time stamp in the </span>
+<span class="sd">        L1 file wanders ( e.g. upto a second either side of 15s ) sometimes the </span>
+<span class="sd">        window length ends up one profile too short or too long. Therefore the </span>
+<span class="sd">        mode width is used to ensure all time windows are the same width (for </span>
+<span class="sd">        example 120 profiles wide if &#39;time_interval_length&#39; = 30 min and time resolution is 15s )</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        start : int</span>
+<span class="sd">            index to start from if we are not using whole file</span>
+<span class="sd">        end : int </span>
+<span class="sd">            index to stop at</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+                                        
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">stop</span> <span class="o">==</span> <span class="kc">None</span> <span class="p">:</span>
+
+            <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="n">stop</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="p">[</span> <span class="n">start</span> <span class="p">:</span> <span class="n">stop</span> <span class="p">]</span> 
+         
+        <span class="n">time_interval_length</span> <span class="o">=</span> <span class="nb">int</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;time_interval_length&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="n">d_fit_time</span> <span class="o">=</span> <span class="nb">int</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;d_fit_time&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">iloc</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="n">d_fit_time_str</span> <span class="o">=</span> <span class="nb">str</span> <span class="p">(</span> <span class="n">d_fit_time</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;min&#39;</span>
+
+        <span class="n">five_time</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span> <span class="p">(</span> <span class="n">start</span> <span class="o">=</span> <span class="n">dt</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">dt</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="n">d_fit_time_str</span> <span class="p">)</span>
+
+        <span class="n">thirty_time</span> <span class="o">=</span> <span class="n">five_time</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">minutes</span> <span class="o">=</span> <span class="n">time_interval_length</span> <span class="p">)</span>
+
+        <span class="n">start_inds</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span> <span class="o">&gt;=</span> <span class="n">f</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">five_time</span> <span class="p">]</span>
+
+        <span class="n">end_inds</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span> <span class="o">&lt;=</span> <span class="n">f</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span>   <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">thirty_time</span> <span class="p">]</span>
+        
+        <span class="n">mode_diff</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mode</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">end_inds</span> <span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">start_inds</span> <span class="p">)</span> <span class="p">)</span>
+        
+        <span class="n">end_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_inds</span><span class="p">)</span> <span class="o">+</span> <span class="n">mode_diff</span><span class="o">.</span><span class="n">mode</span>
+        
+        <span class="n">end_inds</span> <span class="o">=</span> <span class="n">end_inds</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        
+        <span class="n">overlap_functions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="p">)</span>
+        
+        <span class="n">overlap_functions</span> <span class="p">[</span> <span class="p">:</span> <span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span> <span class="n">start_inds</span> <span class="p">,</span> <span class="n">end_inds</span> <span class="p">)</span> <span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">s</span> <span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="o">-</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">minutes</span> <span class="o">=</span> <span class="n">time_interval_length</span> <span class="p">)</span> <span class="p">)</span> <span class="p">:</span>
+                
+                <span class="n">int_str</span> <span class="o">=</span> <span class="s1">&#39;Interval&#39;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">s</span> <span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;%H:%M:%S</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">f</span> <span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;%H:%M:%S</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span>  <span class="nb">str</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="p">[</span> <span class="n">s</span> <span class="p">]</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; to &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="p">[</span> <span class="n">f</span> <span class="p">]</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">s</span> <span class="p">]</span><span class="o">.</span><span class="n">date</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span>
+  
+                <span class="n">results</span> <span class="p">[</span> <span class="n">int_str</span> <span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="n">check1</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">at_least_one_profile</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_flag</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">]</span> <span class="p">)</span>
+
+                <span class="n">check2</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">all_clear_sky</span> <span class="p">(</span> <span class="n">check1</span> <span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">sci</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">]</span> <span class="p">)</span> 
+
+                <span class="n">check3</span> <span class="p">,</span> <span class="n">max_available_fit_range1</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">enough_clear_range_cbi</span> <span class="p">(</span> <span class="n">check2</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cbh</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">)</span>
+
+                <span class="n">check4</span> <span class="p">,</span> <span class="n">max_available_fit_range2</span> <span class="p">,</span> <span class="n">variance</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">running_variance</span> <span class="p">(</span> <span class="n">check3</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">,</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">]</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">,</span> <span class="n">max_available_fit_range1</span> <span class="p">)</span>
+
+                <span class="n">check5</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="n">X</span> <span class="p">,</span> <span class="n">Y</span> <span class="p">,</span> <span class="n">m1</span> <span class="p">,</span> <span class="n">m2</span> <span class="p">,</span> <span class="n">m3</span>  <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">check_grads</span> <span class="p">(</span> <span class="n">check4</span> <span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span>  <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">,</span> <span class="n">max_available_fit_range2</span> <span class="p">)</span>
+
+                <span class="n">max_fit_ranges</span> <span class="o">=</span> <span class="p">[</span> <span class="n">max_available_fit_range1</span> <span class="p">,</span> <span class="n">max_available_fit_range2</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="n">m1</span> <span class="p">,</span> <span class="n">m2</span> <span class="p">,</span> <span class="n">m3</span> <span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">check1</span> <span class="ow">and</span> <span class="n">check2</span> <span class="ow">and</span> <span class="n">check3</span> <span class="ow">and</span> <span class="n">check4</span> <span class="ow">and</span> <span class="n">check5</span><span class="p">:</span>
+
+                    <span class="n">results</span> <span class="p">[</span> <span class="n">int_str</span> <span class="p">]</span> <span class="p">[</span> <span class="s1">&#39;pre-check results&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;passed pre-checks. Max range is = &#39;</span> <span class="o">+</span> <span class="nb">str</span> <span class="p">(</span> <span class="nb">round</span> <span class="p">(</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="mi">1</span>  <span class="p">)</span> <span class="p">)</span>  <span class="o">+</span> <span class="s1">&#39;m&#39;</span> 
+                    
+                    <span class="n">poly_results</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">check_polyfit</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">,</span> <span class="p">:</span> <span class="p">]</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">internal_temperature</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">]</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="p">)</span>
+                    
+                    <span class="n">results</span> <span class="p">[</span> <span class="n">int_str</span> <span class="p">]</span> <span class="p">[</span> <span class="s1">&#39;data_frame&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">poly_results</span>
+                    
+
+                <span class="k">else</span><span class="p">:</span>
+                    
+                    <span class="n">checks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">check1</span> <span class="p">,</span> <span class="n">check2</span> <span class="p">,</span> <span class="n">check3</span> <span class="p">,</span> <span class="n">check4</span> <span class="p">,</span> <span class="n">check5</span> <span class="p">]</span>
+                    
+                    <span class="n">results</span> <span class="p">[</span> <span class="n">int_str</span> <span class="p">]</span> <span class="p">[</span> <span class="s1">&#39;pre-check results&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">catch_errors</span> <span class="p">(</span> <span class="n">checks</span> <span class="p">,</span> <span class="n">max_fit_ranges</span> <span class="p">,</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">]</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">,</span> <span class="n">variance</span> <span class="p">,</span> <span class="n">X</span> <span class="p">,</span> <span class="n">Y</span> <span class="p">)</span>
+                    
+                    <span class="n">results</span> <span class="p">[</span> <span class="n">int_str</span> <span class="p">]</span> <span class="p">[</span> <span class="s1">&#39;data_frame&#39;</span> <span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">],</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pass_all&#39;</span><span class="p">])</span>
+                    
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">results</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">passed_inds</span> <span class="o">=</span> <span class="n">srt</span><span class="o">.</span><span class="n">do_sort_checks</span> <span class="p">(</span> <span class="n">results</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rcs_0</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ov</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="p">)</span></div></div>
+
+
+
+        
+
+
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Chandler Bing
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

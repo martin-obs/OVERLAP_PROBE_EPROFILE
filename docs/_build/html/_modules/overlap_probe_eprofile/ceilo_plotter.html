@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>overlap_probe_eprofile.ceilo_plotter &mdash; Math 00.00.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Math
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">overlap_probe_eprofile</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Math</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>overlap_probe_eprofile.ceilo_plotter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for overlap_probe_eprofile.ceilo_plotter</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1">#</span>
+<span class="c1">#  Code owner: Martin Osborne</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># (C) Crown Copyright 2022, the Met Office.</span>
+<span class="c1">#</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="c1">#matplotlib.use(&#39;agg&#39;)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">gridspec</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colors</span>
+
+<div class="viewcode-block" id="create_ceilo_plot"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.ceilo_plotter.create_ceilo_plot">[docs]</a><span class="k">def</span> <span class="nf">create_ceilo_plot</span> <span class="p">(</span> <span class="n">L1</span> <span class="p">,</span> <span class="n">vdr</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span> <span class="n">mass</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span> <span class="n">instrument</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span> <span class="n">savepath</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">,</span> <span class="n">location</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">)</span> <span class="p">:</span>
+
+    <span class="n">RVal</span> <span class="o">=</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">212</span><span class="p">,</span> <span class="mi">209</span><span class="p">,</span> <span class="mi">207</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">202</span><span class="p">,</span> <span class="mi">199</span><span class="p">,</span> <span class="mi">196</span><span class="p">,</span> <span class="mi">193</span><span class="p">,</span> <span class="mi">189</span><span class="p">,</span> <span class="mi">186</span><span class="p">,</span> <span class="mi">183</span><span class="p">,</span> <span class="mi">179</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">172</span><span class="p">,</span> <span class="mi">169</span><span class="p">,</span> <span class="mi">166</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">156</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">149</span><span class="p">,</span> <span class="mi">146</span><span class="p">,</span> <span class="mi">143</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">136</span><span class="p">,</span> <span class="mi">132</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">124</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span> <span class="mi">117</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">109</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span>  <span class="mi">98</span><span class="p">,</span>  <span class="mi">93</span><span class="p">,</span>  <span class="mi">89</span><span class="p">,</span>  <span class="mi">85</span><span class="p">,</span>  <span class="mi">81</span><span class="p">,</span>  <span class="mi">77</span><span class="p">,</span>  <span class="mi">73</span><span class="p">,</span>  <span class="mi">70</span><span class="p">,</span>  <span class="mi">66</span><span class="p">,</span>  <span class="mi">61</span><span class="p">,</span>  <span class="mi">57</span><span class="p">,</span>  <span class="mi">53</span><span class="p">,</span>
+            <span class="mi">49</span><span class="p">,</span>  <span class="mi">45</span><span class="p">,</span>  <span class="mi">41</span><span class="p">,</span>  <span class="mi">38</span><span class="p">,</span>  <span class="mi">34</span><span class="p">,</span>  <span class="mi">30</span><span class="p">,</span>  <span class="mi">26</span><span class="p">,</span>  <span class="mi">22</span><span class="p">,</span>  <span class="mi">19</span><span class="p">,</span>  <span class="mi">16</span><span class="p">,</span>  <span class="mi">13</span><span class="p">,</span>  <span class="mi">11</span><span class="p">,</span>   <span class="mi">9</span><span class="p">,</span>   <span class="mi">7</span><span class="p">,</span>   <span class="mi">5</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">7</span><span class="p">,</span>  <span class="mi">10</span><span class="p">,</span>  <span class="mi">14</span><span class="p">,</span>  <span class="mi">18</span><span class="p">,</span>  <span class="mi">23</span><span class="p">,</span>  <span class="mi">28</span><span class="p">,</span>  <span class="mi">34</span><span class="p">,</span>  <span class="mi">41</span><span class="p">,</span>  <span class="mi">48</span><span class="p">,</span>  <span class="mi">55</span><span class="p">,</span>  <span class="mi">63</span><span class="p">,</span>  <span class="mi">72</span><span class="p">,</span>  <span class="mi">80</span><span class="p">,</span>  <span class="mi">88</span><span class="p">,</span>  <span class="mi">95</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span>
+            <span class="mi">121</span><span class="p">,</span> <span class="mi">129</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">145</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">161</span><span class="p">,</span> <span class="mi">168</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">201</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">215</span><span class="p">,</span> <span class="mi">221</span><span class="p">,</span> <span class="mi">227</span><span class="p">,</span> <span class="mi">232</span><span class="p">,</span> <span class="mi">236</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">244</span><span class="p">,</span> <span class="mi">246</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span>
+            <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">248</span><span class="p">,</span> <span class="mi">246</span><span class="p">,</span> <span class="mi">244</span><span class="p">,</span> <span class="mi">242</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">237</span><span class="p">,</span> <span class="mi">234</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">226</span><span class="p">,</span> <span class="mi">223</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">215</span><span class="p">,</span> <span class="mi">212</span><span class="p">,</span>
+            <span class="mi">208</span><span class="p">,</span> <span class="mi">204</span><span class="p">,</span> <span class="mi">199</span><span class="p">,</span> <span class="mi">195</span><span class="p">,</span> <span class="mi">191</span><span class="p">,</span> <span class="mi">188</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">172</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">147</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">138</span><span class="p">,</span> <span class="mi">136</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">132</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">130</span><span class="p">]</span>
+
+    <span class="n">GVal</span> <span class="o">=</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">216</span><span class="p">,</span> <span class="mi">212</span><span class="p">,</span> <span class="mi">209</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">197</span><span class="p">,</span> <span class="mi">194</span><span class="p">,</span> <span class="mi">190</span><span class="p">,</span> <span class="mi">187</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">173</span><span class="p">,</span> <span class="mi">169</span><span class="p">,</span> <span class="mi">166</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">156</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">149</span><span class="p">,</span> <span class="mi">146</span><span class="p">,</span> <span class="mi">142</span><span class="p">,</span> <span class="mi">139</span><span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mi">132</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">124</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span> <span class="mi">117</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">106</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span>  <span class="mi">98</span><span class="p">,</span>  <span class="mi">94</span><span class="p">,</span>  <span class="mi">90</span><span class="p">,</span>  <span class="mi">86</span><span class="p">,</span>  <span class="mi">82</span><span class="p">,</span>  <span class="mi">78</span><span class="p">,</span>  <span class="mi">74</span><span class="p">,</span>  <span class="mi">70</span><span class="p">,</span>  <span class="mi">67</span><span class="p">,</span>  <span class="mi">62</span><span class="p">,</span>  <span class="mi">58</span><span class="p">,</span>  <span class="mi">54</span><span class="p">,</span>
+            <span class="mi">50</span><span class="p">,</span>  <span class="mi">46</span><span class="p">,</span>  <span class="mi">42</span><span class="p">,</span>  <span class="mi">39</span><span class="p">,</span>  <span class="mi">35</span><span class="p">,</span>  <span class="mi">31</span><span class="p">,</span>  <span class="mi">27</span><span class="p">,</span>  <span class="mi">23</span><span class="p">,</span>  <span class="mi">20</span><span class="p">,</span>  <span class="mi">18</span><span class="p">,</span>  <span class="mi">16</span><span class="p">,</span>  <span class="mi">15</span><span class="p">,</span>  <span class="mi">15</span><span class="p">,</span>  <span class="mi">15</span><span class="p">,</span>  <span class="mi">15</span><span class="p">,</span>  <span class="mi">16</span><span class="p">,</span>  <span class="mi">18</span><span class="p">,</span>  <span class="mi">21</span><span class="p">,</span>  <span class="mi">24</span><span class="p">,</span>  <span class="mi">28</span><span class="p">,</span>  <span class="mi">32</span><span class="p">,</span>  <span class="mi">37</span><span class="p">,</span>  <span class="mi">43</span><span class="p">,</span>  <span class="mi">48</span><span class="p">,</span>  <span class="mi">53</span><span class="p">,</span>  <span class="mi">58</span><span class="p">,</span>  <span class="mi">63</span><span class="p">,</span>  <span class="mi">68</span><span class="p">,</span>  <span class="mi">72</span><span class="p">,</span>  <span class="mi">78</span><span class="p">,</span>  <span class="mi">83</span><span class="p">,</span>  <span class="mi">88</span><span class="p">,</span>  <span class="mi">92</span><span class="p">,</span>  <span class="mi">97</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">111</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">122</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">132</span><span class="p">,</span> <span class="mi">136</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">145</span><span class="p">,</span> <span class="mi">149</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span>
+            <span class="mi">157</span><span class="p">,</span> <span class="mi">161</span><span class="p">,</span> <span class="mi">165</span><span class="p">,</span> <span class="mi">168</span><span class="p">,</span> <span class="mi">171</span><span class="p">,</span> <span class="mi">175</span><span class="p">,</span> <span class="mi">178</span><span class="p">,</span> <span class="mi">181</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">187</span><span class="p">,</span> <span class="mi">190</span><span class="p">,</span> <span class="mi">193</span><span class="p">,</span> <span class="mi">196</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">209</span><span class="p">,</span> <span class="mi">212</span><span class="p">,</span> <span class="mi">215</span><span class="p">,</span> <span class="mi">218</span><span class="p">,</span> <span class="mi">221</span><span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">228</span><span class="p">,</span> <span class="mi">231</span><span class="p">,</span> <span class="mi">234</span><span class="p">,</span> <span class="mi">236</span><span class="p">,</span> <span class="mi">239</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">243</span><span class="p">,</span> <span class="mi">244</span><span class="p">,</span> <span class="mi">246</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span>
+            <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">243</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">232</span><span class="p">,</span> <span class="mi">229</span><span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">221</span><span class="p">,</span> <span class="mi">217</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">209</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">201</span><span class="p">,</span> <span class="mi">196</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">188</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">172</span><span class="p">,</span> <span class="mi">168</span><span class="p">,</span> <span class="mi">164</span><span class="p">,</span> <span class="mi">161</span><span class="p">,</span> <span class="mi">156</span><span class="p">,</span> <span class="mi">152</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span>
+            <span class="mi">137</span><span class="p">,</span> <span class="mi">133</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">124</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">111</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span>  <span class="mi">99</span><span class="p">,</span>  <span class="mi">95</span><span class="p">,</span>  <span class="mi">91</span><span class="p">,</span>  <span class="mi">88</span><span class="p">,</span>  <span class="mi">84</span><span class="p">,</span>  <span class="mi">80</span><span class="p">,</span>  <span class="mi">76</span><span class="p">,</span>  <span class="mi">72</span><span class="p">,</span>  <span class="mi">68</span><span class="p">,</span>  <span class="mi">65</span><span class="p">,</span>  <span class="mi">60</span><span class="p">,</span>  <span class="mi">56</span><span class="p">,</span>  <span class="mi">53</span><span class="p">,</span>  <span class="mi">49</span><span class="p">,</span>  <span class="mi">45</span><span class="p">,</span>  <span class="mi">40</span><span class="p">,</span>  <span class="mi">36</span><span class="p">,</span>  <span class="mi">32</span><span class="p">,</span>  <span class="mi">27</span><span class="p">,</span>  <span class="mi">23</span><span class="p">,</span>  <span class="mi">20</span><span class="p">,</span>  <span class="mi">17</span><span class="p">,</span>  <span class="mi">14</span><span class="p">,</span>  <span class="mi">11</span><span class="p">,</span>   <span class="mi">8</span><span class="p">,</span>   <span class="mi">6</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">BVal</span> <span class="o">=</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">226</span><span class="p">,</span> <span class="mi">227</span><span class="p">,</span> <span class="mi">228</span><span class="p">,</span> <span class="mi">228</span><span class="p">,</span> <span class="mi">229</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span> <span class="mi">231</span><span class="p">,</span> <span class="mi">232</span><span class="p">,</span> <span class="mi">233</span><span class="p">,</span> <span class="mi">234</span><span class="p">,</span> <span class="mi">235</span><span class="p">,</span> <span class="mi">236</span><span class="p">,</span> <span class="mi">237</span><span class="p">,</span> <span class="mi">238</span><span class="p">,</span> <span class="mi">239</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">242</span><span class="p">,</span> <span class="mi">243</span><span class="p">,</span> <span class="mi">244</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">246</span><span class="p">,</span> <span class="mi">248</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span>
+            <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">252</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">251</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">249</span><span class="p">,</span> <span class="mi">248</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="mi">243</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">239</span><span class="p">,</span> <span class="mi">236</span><span class="p">,</span> <span class="mi">234</span><span class="p">,</span> <span class="mi">231</span><span class="p">,</span> <span class="mi">229</span><span class="p">,</span> <span class="mi">226</span><span class="p">,</span> <span class="mi">223</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">217</span><span class="p">,</span> <span class="mi">214</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">205</span><span class="p">,</span> <span class="mi">202</span><span class="p">,</span> <span class="mi">199</span><span class="p">,</span> <span class="mi">196</span><span class="p">,</span> <span class="mi">193</span><span class="p">,</span> <span class="mi">191</span><span class="p">,</span> <span class="mi">188</span><span class="p">,</span> <span class="mi">185</span><span class="p">,</span> <span class="mi">182</span><span class="p">,</span> <span class="mi">179</span><span class="p">,</span> <span class="mi">175</span><span class="p">,</span> <span class="mi">172</span><span class="p">,</span> <span class="mi">168</span><span class="p">,</span> <span class="mi">164</span><span class="p">,</span> <span class="mi">161</span><span class="p">,</span> <span class="mi">157</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span>
+            <span class="mi">149</span><span class="p">,</span> <span class="mi">145</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">133</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">123</span><span class="p">,</span> <span class="mi">118</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span>  <span class="mi">97</span><span class="p">,</span>  <span class="mi">92</span><span class="p">,</span>  <span class="mi">86</span><span class="p">,</span>  <span class="mi">81</span><span class="p">,</span>  <span class="mi">76</span><span class="p">,</span>  <span class="mi">71</span><span class="p">,</span>  <span class="mi">66</span><span class="p">,</span>  <span class="mi">61</span><span class="p">,</span>  <span class="mi">56</span><span class="p">,</span>  <span class="mi">51</span><span class="p">,</span>  <span class="mi">46</span><span class="p">,</span>  <span class="mi">41</span><span class="p">,</span>  <span class="mi">36</span><span class="p">,</span>  <span class="mi">32</span><span class="p">,</span>  <span class="mi">28</span><span class="p">,</span>  <span class="mi">24</span><span class="p">,</span>  <span class="mi">20</span><span class="p">,</span>  <span class="mi">17</span><span class="p">,</span>  <span class="mi">14</span><span class="p">,</span>  <span class="mi">12</span><span class="p">,</span>  <span class="mi">10</span><span class="p">,</span>   <span class="mi">8</span><span class="p">,</span>   <span class="mi">6</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span>   <span class="mi">2</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">5</span><span class="p">,</span>   <span class="mi">7</span><span class="p">,</span>   <span class="mi">9</span><span class="p">,</span>  <span class="mi">11</span><span class="p">,</span>  <span class="mi">13</span><span class="p">,</span>  <span class="mi">16</span><span class="p">,</span>  <span class="mi">19</span><span class="p">,</span>  <span class="mi">22</span><span class="p">,</span>  <span class="mi">26</span><span class="p">,</span>  <span class="mi">30</span><span class="p">,</span>  <span class="mi">33</span><span class="p">,</span>  <span class="mi">36</span><span class="p">,</span>  <span class="mi">40</span><span class="p">,</span>
+            <span class="mi">44</span><span class="p">,</span>  <span class="mi">47</span><span class="p">,</span>  <span class="mi">52</span><span class="p">,</span>  <span class="mi">55</span><span class="p">,</span>  <span class="mi">59</span><span class="p">,</span>  <span class="mi">62</span><span class="p">,</span>  <span class="mi">66</span><span class="p">,</span>  <span class="mi">70</span><span class="p">,</span>  <span class="mi">74</span><span class="p">,</span>  <span class="mi">78</span><span class="p">,</span>  <span class="mi">83</span><span class="p">,</span>  <span class="mi">87</span><span class="p">,</span>  <span class="mi">91</span><span class="p">,</span>  <span class="mi">95</span><span class="p">,</span>  <span class="mi">99</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">115</span><span class="p">,</span> <span class="mi">117</span><span class="p">,</span> <span class="mi">118</span><span class="p">,</span> <span class="mi">120</span><span class="p">]</span>
+
+    <span class="n">colours</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="p">(</span> <span class="n">RVal</span> <span class="p">,</span> <span class="n">GVal</span> <span class="p">,</span> <span class="n">BVal</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+
+    <span class="n">fctab</span><span class="o">=</span> <span class="n">colours</span> <span class="o">/</span> <span class="mf">255.0</span>
+
+    <span class="n">my_cmap</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span> <span class="p">(</span> <span class="n">fctab</span> <span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Cloudnet&#39;</span> <span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">)</span>
+
+    <span class="n">my_cmap</span><span class="o">.</span><span class="n">set_bad</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;legend.fontsize&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+              <span class="s1">&#39;figure.figsize&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+              <span class="s1">&#39;axes.labelsize&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+              <span class="s1">&#39;axes.titlesize&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span>
+              <span class="s1">&#39;axes.linewidth&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span>
+              <span class="s1">&#39;xtick.labelsize&#39;</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span>
+              <span class="s1">&#39;ytick.labelsize&#39;</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span>
+              <span class="s1">&#39;xtick.major.size&#39;</span><span class="p">:</span> <span class="mf">3.5</span><span class="p">,</span>
+              <span class="s1">&#39;xtick.minor.size&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strftime</span> <span class="p">(</span> <span class="n">L1</span><span class="o">.</span><span class="n">dt</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="p">)</span>
+
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">L1</span><span class="o">.</span><span class="n">rcs_0</span>
+
+    <span class="n">cbh</span> <span class="o">=</span> <span class="n">L1</span><span class="o">.</span><span class="n">cbh</span>
+
+    <span class="n">m_time</span> <span class="o">=</span> <span class="n">L1</span><span class="o">.</span><span class="n">Time</span>
+
+    <span class="n">range1</span> <span class="o">=</span> <span class="n">L1</span><span class="o">.</span><span class="n">rng</span> <span class="o">/</span> <span class="mi">1000</span>
+
+    <span class="n">elastic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+
+    <span class="n">Time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">m_time</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">instrument</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;CL61&#39;</span><span class="p">:</span>
+
+        <span class="n">VDR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">vdr</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">11</span><span class="p">)</span>
+
+    <span class="n">LABEL_SIZE</span> <span class="o">=</span> <span class="mi">15</span>
+
+    <span class="n">gs</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span> <span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">])</span>
+
+    <span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span> <span class="p">(</span> <span class="n">location</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">instrument</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">date</span> <span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="mf">0.125</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="mf">0.92</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">elastic</span><span class="p">)),</span> <span class="n">vmin</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">Time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">range1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">range1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">my_cmap</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+
+    <span class="n">ax1</span><span class="o">.</span><span class="n">xaxis_date</span><span class="p">()</span>
+
+    <span class="n">cbh_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span> <span class="p">,</span> <span class="s1">&#39;^&#39;</span> <span class="p">,</span> <span class="s1">&#39;*&#39;</span> <span class="p">,</span> <span class="s1">&#39;s&#39;</span> <span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span> <span class="p">(</span> <span class="n">cbh</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span> <span class="p">)</span> <span class="p">:</span>
+
+        <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span> <span class="p">(</span> <span class="n">Time</span> <span class="p">,</span> <span class="n">cbh</span><span class="p">[:,</span><span class="n">n</span><span class="p">]</span><span class="o">/</span><span class="mi">1000</span> <span class="p">,</span> <span class="n">cbh_symbols</span> <span class="p">[</span> <span class="n">n</span> <span class="p">]</span> <span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">ms</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">,</span> <span class="n">zorder</span> <span class="o">=</span> <span class="mi">20</span> <span class="p">)</span>
+
+    <span class="n">date_format</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">dates</span><span class="o">.</span><span class="n">DateFormatter</span><span class="p">(</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span>
+
+    <span class="n">ax1</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Log$_</span><span class="si">{10}</span><span class="s1">$ Attenuated Backscatter&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="n">pad</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Range [km]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+    <span class="n">cax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span><span class="p">(</span><span class="n">cax</span><span class="p">,</span><span class="n">mappable</span> <span class="o">=</span> <span class="n">p1</span>  <span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span>  <span class="n">my_cmap</span><span class="p">,</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[m$^{-1}$sr$^{-1}$]&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">clim</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span>
+
+    <span class="n">ax1</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">instrument</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;CL61&#39;</span><span class="p">:</span>
+
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [UTC]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">instrument</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;CL31&#39;</span><span class="p">:</span>
+
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">instrument</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;CL61&#39;</span><span class="p">:</span>
+
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">p2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">VDR</span><span class="p">)),</span> <span class="n">vmin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">Time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">range1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">range1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">my_cmap</span><span class="p">,</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+
+        <span class="n">ax2</span><span class="o">.</span><span class="n">xaxis_date</span><span class="p">()</span>
+
+        <span class="n">date_format</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">dates</span><span class="o">.</span><span class="n">DateFormatter</span><span class="p">(</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span>
+
+        <span class="n">ax2</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Log$_</span><span class="si">{10}</span><span class="s1">$VDR&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="n">pad</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Range [km]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+        <span class="n">cax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span><span class="p">(</span><span class="n">cax</span><span class="p">,</span><span class="n">mappable</span> <span class="o">=</span> <span class="n">p2</span>  <span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span>  <span class="n">my_cmap</span><span class="p">,</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[AU]&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">clim</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">ax2</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">])</span>
+
+        <span class="n">ax3</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">mass</span><span class="p">)),</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">Time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">range1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">range1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;Reds&#39;</span><span class="p">),</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+
+        <span class="n">ax3</span><span class="o">.</span><span class="n">xaxis_date</span><span class="p">()</span>
+
+        <span class="n">date_format</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">dates</span><span class="o">.</span><span class="n">DateFormatter</span><span class="p">(</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span>
+
+        <span class="n">ax3</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Mass concentration&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="n">pad</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Range [km]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time [UTC]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="p">)</span>
+
+        <span class="n">cax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">ColorbarBase</span><span class="p">(</span><span class="n">cax</span><span class="p">,</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;Reds&#39;</span><span class="p">),</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+
+        <span class="n">cax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="n">tks</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="o">/</span><span class="mi">200</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">200</span> <span class="p">,</span><span class="mi">25</span><span class="p">)</span> <span class="p">]</span>
+
+        <span class="n">cax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">tks</span><span class="p">)</span>
+
+        <span class="n">fac</span> <span class="o">=</span> <span class="mf">0.68</span><span class="o">/</span><span class="mf">0.38</span>
+
+        <span class="n">tk_lab</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="o">*</span><span class="n">fac</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">240</span> <span class="p">,</span><span class="mi">40</span><span class="p">)</span> <span class="p">]</span>
+
+        <span class="n">cax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">tk_lab</span><span class="p">)</span>
+
+        <span class="n">cax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Ash [$\mu$gm$^{-3}$]&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">clone</span> <span class="o">=</span> <span class="n">cax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+
+        <span class="n">clone</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">clone</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+
+        <span class="n">clone</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Dust [$\mu$gm$^{-3}$]&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=-</span><span class="mi">70</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">clim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">)</span>
+
+        <span class="n">ax3</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="n">LABEL_SIZE</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">])</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.11</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span> <span class="p">(</span> <span class="n">savepath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">instrument</span><span class="o">.</span><span class="n">upper</span> <span class="p">(</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">date</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span> <span class="p">,</span> <span class="n">bbox_inches</span> <span class="o">=</span> <span class="s1">&#39;tight&#39;</span> <span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span> <span class="p">,</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">300</span> <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Chandler Bing
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

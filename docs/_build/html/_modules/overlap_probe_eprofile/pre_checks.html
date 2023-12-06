@@ -1,0 +1,552 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>overlap_probe_eprofile.pre_checks &mdash; Math 00.00.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Math
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">overlap_probe_eprofile</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Math</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>overlap_probe_eprofile.pre_checks</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for overlap_probe_eprofile.pre_checks</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;Functions to perform pre-checks on CHM15k ceilometer data before it is used </span>
+<span class="sd">in calculating corrected overlap functions.  This is a translation / refactoring </span>
+<span class="sd">of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.</span>
+
+<span class="sd">    @author martin osborne: martin.osborne@metoffice.gov.uk</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">scipy.signal</span> <span class="k">as</span> <span class="nn">ss</span>
+
+<div class="viewcode-block" id="at_least_one_profile"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.pre_checks.at_least_one_profile">[docs]</a><span class="k">def</span> <span class="nf">at_least_one_profile</span> <span class="p">(</span> <span class="n">flag</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check there is at least one profile within the current time window</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    flag : array of bools</span>
+<span class="sd">        Boolean array indicating which profiles are to be ignored as filled</span>
+<span class="sd">        missing data</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    </span>
+<span class="sd">    Result : bool</span>
+<span class="sd">        True or False for pass or fail</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    overlap_probe_eprofile.process_L1.Eprofile_Reader.fill_gaps</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">all</span> <span class="p">(</span> <span class="n">flag</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="all_clear_sky"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.pre_checks.all_clear_sky">[docs]</a><span class="k">def</span> <span class="nf">all_clear_sky</span> <span class="p">(</span> <span class="n">check</span> <span class="p">,</span> <span class="n">sci</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check all profiles in current time window come with a clear sky condition</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    check : bool</span>
+<span class="sd">        result of first check ( at_least_one_profile )</span>
+<span class="sd">    </span>
+<span class="sd">    sci : list of ints</span>
+<span class="sd">        sky conditions for each profile</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    </span>
+<span class="sd">    Result : bool</span>
+<span class="sd">        True or False for pass or fail</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    overlap_probe_eprofile.pre_checks.at_least_one_profile</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">check</span> <span class="p">:</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span> <span class="p">(</span> <span class="n">sci</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">else</span> <span class="p">:</span>
+
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="enough_clear_range_cbi"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.pre_checks.enough_clear_range_cbi">[docs]</a><span class="k">def</span> <span class="nf">enough_clear_range_cbi</span> <span class="p">(</span> <span class="n">check</span> <span class="p">,</span>  <span class="n">cbi</span> <span class="p">,</span> <span class="n">config</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Checks that the minimum cloud base height within the current time window leaves </span>
+<span class="sd">    enough range bins below it to allow for a large enough fitting window </span>
+<span class="sd">    as defined by &#39;min_fit_range&#39; + &#39;min_fit_length&#39; in config. If this test </span>
+<span class="sd">    is passed, the lowest cloud base height is returned as the max_available_fit_range</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    check : bool</span>
+<span class="sd">        result of all_clear_sky test</span>
+<span class="sd">    cbi : array of floats</span>
+<span class="sd">        cloud base heights for current time window  </span>
+<span class="sd">    config : class attribute</span>
+<span class="sd">        contains settings and thresholds</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Result: bool</span>
+<span class="sd">        True or False for pass or fail</span>
+<span class="sd">    max_available_fit_range : float</span>
+<span class="sd">        maximum altitude at which test is passed</span>
+<span class="sd">        </span>
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    overlap_probe_eprofile.pre_checks.all_clear_sky</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+
+        <span class="n">cbi</span> <span class="p">[</span> <span class="n">cbi</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">]</span> <span class="o">=</span> <span class="mi">15000</span>
+
+        <span class="n">max_fit_range</span> <span class="o">=</span> <span class="n">config</span> <span class="p">[</span><span class="s1">&#39;max_fit_range&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+        <span class="n">lower_cbs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span> <span class="p">(</span> <span class="n">cbi</span> <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span> <span class="p">(</span> <span class="n">lower_cbs</span> <span class="o">&gt;=</span> <span class="p">(</span>  <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span>  <span class="o">+</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_length&#39;</span> <span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="n">lower_cbs</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">lower_cbs</span> <span class="o">&gt;=</span> <span class="n">max_fit_range</span> <span class="p">)</span> <span class="p">]</span> <span class="o">=</span> <span class="n">max_fit_range</span>
+
+        <span class="n">max_available_fit_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span> <span class="p">(</span> <span class="n">lower_cbs</span> <span class="p">)</span>
+
+        <span class="k">return</span>  <span class="n">result</span> <span class="p">,</span> <span class="n">max_available_fit_range</span>
+
+    <span class="k">else</span> <span class="p">:</span>
+
+        <span class="k">return</span> <span class="kc">False</span> <span class="p">,</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="running_variance"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.pre_checks.running_variance">[docs]</a><span class="k">def</span> <span class="nf">running_variance</span> <span class="p">(</span> <span class="n">check</span> <span class="p">,</span>  <span class="n">rcs_0</span> <span class="p">,</span> <span class="n">rng</span> <span class="p">,</span> <span class="n">dt</span> <span class="p">,</span> <span class="n">config</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">)</span> <span class="p">:</span>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the variance for a subset of profiles within the current time window and </span>
+<span class="sd">    within a defined altitude range. The subset is defined by &#39;dt_sliding_variance&#39;</span>
+<span class="sd">    in config, and is that number of profiles wide. The subset is moved by one profile until </span>
+<span class="sd">    the end of the curent time widow is reached. The altitude range is defined by </span>
+<span class="sd">    &#39;min_range_std_over_mean&#39; (from config) and &#39;max_available_fit_range&#39; from the previous</span>
+<span class="sd">    tests. The first altitude at which the variance exceeds &#39;max_std_over_mean&#39;, as defined in </span>
+<span class="sd">    config, is returned. This is the new &#39;max_available_fit_range&#39;. If this leaves enough bins </span>
+<span class="sd">    in the available fitting window (defined by &#39;min_fit_range&#39; + &#39;min_fit_length&#39; in config) </span>
+<span class="sd">    then the test is passed.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    check : bool</span>
+<span class="sd">        result of enough_clear_range_cbi test</span>
+<span class="sd">    rcs_0 : 2D array of floats</span>
+<span class="sd">        range corrected signal for current time window</span>
+<span class="sd">    rng : array of floats</span>
+<span class="sd">        range array for rcs_0</span>
+<span class="sd">    dt : array of datetimes</span>
+<span class="sd">        time array for current time window</span>
+<span class="sd">    config : class attribute</span>
+<span class="sd">        contains settings and thresholds</span>
+<span class="sd">    max_available_fit_range : float</span>
+<span class="sd">        maximum altitude at which all tests so far have been passed</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Result: bool</span>
+<span class="sd">        True or False for pass or fail</span>
+<span class="sd">    max_available_fit_range : float</span>
+<span class="sd">        maximum altitude at which test is passed</span>
+<span class="sd">    variance : float</span>
+<span class="sd">        variance at max_available_fit_range</span>
+<span class="sd">        </span>
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    overlap_probe_eprofile.pre_checks.enough_clear_range_cbi</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+
+        <span class="n">min_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">rng</span> <span class="o">&lt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_range_std_over_mean&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span>
+
+        <span class="n">max_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">rng</span> <span class="o">&lt;=</span> <span class="n">max_available_fit_range</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span>
+
+        <span class="n">dt_sliding_variance</span><span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;dt_sliding_variance&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">iloc</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="n">max_std_over_mean</span> <span class="o">=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;max_std_over_mean&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+        <span class="n">variance_times</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">minutes</span> <span class="o">=</span> <span class="n">dt_sliding_variance</span> <span class="p">)</span>
+
+        <span class="n">start_inds</span> <span class="o">=</span> <span class="p">[</span> <span class="o">*</span><span class="nb">range</span> <span class="p">(</span> <span class="mi">0</span> <span class="p">,</span> <span class="nb">len</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span> <span class="p">)</span> <span class="p">]</span>
+
+        <span class="n">end_inds</span> <span class="o">=</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span> <span class="o">&lt;=</span> <span class="n">f</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">variance_times</span> <span class="p">]</span>
+
+        <span class="n">std_over_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span> <span class="p">(</span> <span class="n">max_r</span> <span class="o">-</span> <span class="n">min_r</span> <span class="p">)</span>
+
+        <span class="n">signal1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span> <span class="p">(</span> <span class="n">rcs_0</span> <span class="p">[</span>  <span class="p">:</span>  <span class="p">,</span> <span class="n">min_r</span> <span class="p">:</span> <span class="n">max_r</span>  <span class="p">]</span> <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span> <span class="n">start_inds</span> <span class="p">,</span> <span class="n">end_inds</span> <span class="p">)</span> <span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">dt</span> <span class="p">[</span> <span class="n">s</span> <span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="o">-</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">minutes</span> <span class="o">=</span> <span class="n">dt_sliding_variance</span> <span class="p">)</span> <span class="p">)</span> <span class="p">:</span>
+
+                <span class="n">signal2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span> <span class="p">(</span> <span class="n">rcs_0</span> <span class="p">[</span> <span class="n">s</span> <span class="p">:</span> <span class="n">f</span> <span class="p">,</span> <span class="n">min_r</span> <span class="p">:</span> <span class="n">max_r</span>  <span class="p">]</span> <span class="p">)</span>
+
+                <span class="n">std_over_mean_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">emath</span><span class="o">.</span><span class="n">log10</span> <span class="p">(</span> <span class="n">signal2</span> <span class="p">)</span> <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">emath</span><span class="o">.</span><span class="n">log10</span> <span class="p">(</span> <span class="n">signal1</span> <span class="p">)</span>  <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">)</span>
+
+                <span class="n">std_over_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span> <span class="p">(</span> <span class="n">std_over_mean</span> <span class="p">,</span> <span class="n">std_over_mean_tmp</span> <span class="p">)</span>
+
+        <span class="n">i_first_over_thresh_std_over_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span> <span class="p">(</span> <span class="n">std_over_mean</span> <span class="o">&gt;=</span> <span class="n">max_std_over_mean</span> <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span> <span class="p">(</span><span class="n">i_first_over_thresh_std_over_mean</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+
+                <span class="n">ind</span> <span class="o">=</span> <span class="n">i_first_over_thresh_std_over_mean</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+
+                <span class="n">max_available_fit_range</span> <span class="o">=</span> <span class="n">rng</span> <span class="p">[</span> <span class="n">min_r</span> <span class="o">+</span> <span class="n">ind</span>  <span class="p">]</span>
+
+                <span class="k">return</span> <span class="n">max_available_fit_range</span>  <span class="o">&gt;=</span>  <span class="p">(</span><span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span>  <span class="o">+</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_length&#39;</span> <span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="n">std_over_mean</span> <span class="p">[</span> <span class="n">ind</span> <span class="p">]</span> 
+
+        <span class="k">else</span> <span class="p">:</span>
+
+            <span class="k">return</span> <span class="n">max_available_fit_range</span> <span class="o">&gt;=</span>  <span class="p">(</span><span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span>  <span class="o">+</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_length&#39;</span> <span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="mf">0.0</span>
+
+    <span class="k">else</span> <span class="p">:</span>
+
+        <span class="k">return</span> <span class="kc">False</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="mf">0.0</span></div>
+
+
+<div class="viewcode-block" id="conv2"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.pre_checks.conv2">[docs]</a><span class="k">def</span> <span class="nf">conv2</span> <span class="p">(</span> <span class="n">x</span> <span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finds signal gradient using convolution. Matlab&#39;s conv2 and Python&#39;s </span>
+<span class="sd">    scipy.signal.convolve2d behave slightly differently. This function reproduces </span>
+<span class="sd">    the behaviour of the Matlab function. Used in &#39;check_grads&#39; to match the </span>
+<span class="sd">    Matlab code results.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    x : 2D array of floats</span>
+<span class="sd">        input signal </span>
+<span class="sd">    direction : str</span>
+<span class="sd">        direction in which grdient is to be calculated. &#39;x&#39; or &#39;y&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gradient : 2D array of floats</span>
+<span class="sd">        gradient of input signal along &quot;direction&quot;&quot;</span>
+<span class="sd">        </span>
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    overlap_probe_eprofile.pre_checks.check_grads</span>
+<span class="sd">    </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span> <span class="p">:</span>
+        
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">,</span> <span class="mi">2</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="o">-</span><span class="mi">2</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">reshape</span> <span class="p">(</span> <span class="p">(</span> <span class="mi">3</span> <span class="p">,</span> <span class="mi">3</span> <span class="p">)</span> <span class="p">)</span>
+        
+    <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span> <span class="p">:</span>
+
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span> <span class="p">(</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">,</span> <span class="mi">2</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">0</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">,</span> <span class="o">-</span><span class="mi">2</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">reshape</span> <span class="p">(</span> <span class="p">(</span> <span class="mi">3</span> <span class="p">,</span> <span class="mi">3</span> <span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span> <span class="p">(</span> <span class="n">ss</span><span class="o">.</span><span class="n">convolve2d</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span> <span class="p">(</span> <span class="n">x</span> <span class="p">,</span> <span class="mi">2</span> <span class="p">)</span> <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span> <span class="p">(</span> <span class="n">grad</span> <span class="p">,</span> <span class="mi">2</span> <span class="p">)</span> <span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;same&#39;</span> <span class="p">)</span> <span class="p">,</span> <span class="mi">2</span> <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_grads"><a class="viewcode-back" href="../../overlap_probe_eprofile.html#overlap_probe_eprofile.pre_checks.check_grads">[docs]</a><span class="k">def</span> <span class="nf">check_grads</span> <span class="p">(</span> <span class="n">check</span> <span class="p">,</span>  <span class="n">rcs_0</span> <span class="p">,</span> <span class="n">rng</span> <span class="p">,</span> <span class="n">config</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">)</span> <span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calls conv2 to find the range bin at which the relative gradients of log10 ( rcs_0 ) along </span>
+<span class="sd">    the altitude and time directions are below &#39;max_relgrad&#39; and checks that this leaves </span>
+<span class="sd">    enough bins in the fitting window. Also find the highest range bin where the </span>
+<span class="sd">    max and mean of the magnitide of the relative gradients from &#39;first_range_gradY&#39; </span>
+<span class="sd">    are less than &#39;max_relgrad&#39; and &#39;max_relgrad_mean&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    check : bool</span>
+<span class="sd">        result of running_variance test</span>
+<span class="sd">    rcs_0 : 2D array of floats</span>
+<span class="sd">        range corrected signal for current time window</span>
+<span class="sd">    rng : array of floats</span>
+<span class="sd">        range array for rcs_0</span>
+<span class="sd">    dt : array of datetimes</span>
+<span class="sd">        time array for current time window</span>
+<span class="sd">    config : class attribute</span>
+<span class="sd">        contains settings and thresholds</span>
+<span class="sd">    max_available_fit_range : float</span>
+<span class="sd">        maximum altitude at which all tests so far have been passed</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Result: bool</span>
+<span class="sd">        True or False for pass or fail</span>
+<span class="sd">    max_available_fit_range : float</span>
+<span class="sd">        maximum altitude at which test is passed</span>
+<span class="sd">    variance : float</span>
+<span class="sd">        variance at max_available_fit_range</span>
+<span class="sd">        </span>
+<span class="sd">    See also</span>
+<span class="sd">    --------</span>
+<span class="sd">    overlap_probe_eprofile.pre_checks.running_variance test   </span>
+<span class="sd">    overlap_probe_eprofile.pre_checks.conv2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">check</span> <span class="p">:</span>
+
+        <span class="n">X</span> <span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span> 
+
+        <span class="n">m1</span> <span class="o">=</span> <span class="n">m2</span> <span class="o">=</span> <span class="n">m3</span> <span class="o">=</span> <span class="n">max_available_fit_range</span> 
+
+        <span class="n">min_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">rng</span> <span class="o">&gt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_range_std_over_mean&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+
+        <span class="n">max_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">rng</span> <span class="o">&lt;=</span> <span class="n">max_available_fit_range</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> 
+
+        <span class="n">rconv</span> <span class="o">=</span> <span class="n">rng</span> <span class="p">[</span> <span class="n">min_r</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">max_r</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">]</span>
+
+        <span class="n">lRCS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span> <span class="p">(</span> <span class="nb">abs</span> <span class="p">(</span> <span class="n">rcs_0</span> <span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="n">min_r</span> <span class="p">:</span> <span class="n">max_r</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="n">gradY</span> <span class="o">=</span> <span class="n">conv2</span> <span class="p">(</span> <span class="n">lRCS</span> <span class="p">,</span> <span class="n">direction</span> <span class="o">=</span>  <span class="s1">&#39;y&#39;</span> <span class="p">)</span>
+
+        <span class="n">gradX</span> <span class="o">=</span> <span class="n">conv2</span> <span class="p">(</span> <span class="n">lRCS</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span> <span class="p">)</span>
+
+        <span class="n">relgradY</span> <span class="o">=</span> <span class="nb">abs</span> <span class="p">(</span> <span class="n">gradY</span> <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span> <span class="p">(</span><span class="n">lRCS</span><span class="p">)</span>
+
+        <span class="n">relgradX</span> <span class="o">=</span> <span class="nb">abs</span> <span class="p">(</span> <span class="n">gradX</span> <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span> <span class="p">(</span><span class="n">lRCS</span><span class="p">)</span>
+
+        <span class="n">relgradmagn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span> <span class="p">(</span> <span class="n">gradX</span>  <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">gradY</span>  <span class="o">**</span> <span class="mi">2</span> <span class="p">)</span> <span class="o">/</span> <span class="nb">abs</span> <span class="p">(</span> <span class="n">lRCS</span> <span class="p">)</span>
+
+        <span class="n">relgradYmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span> <span class="p">(</span> <span class="n">relgradY</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span>  <span class="p">)</span>
+
+        <span class="n">relgradXmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span> <span class="p">(</span> <span class="n">relgradX</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span> <span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span>  <span class="p">)</span>
+
+        <span class="n">relgradmagn_sub</span> <span class="o">=</span> <span class="n">relgradmagn</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span>
+
+        <span class="n">irgradmagn</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="p">(</span> <span class="n">rconv</span> <span class="o">&gt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;first_range_gradY&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="p">(</span> <span class="n">rconv</span> <span class="o">&lt;=</span> <span class="n">max_available_fit_range</span> <span class="p">)</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+
+        <span class="n">i_first_over_thresh_relgradY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">relgradYmax</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">rconv</span> <span class="o">&gt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;first_range_gradY&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="p">]</span> <span class="o">&gt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;max_relgrad&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="n">i_first_over_thresh_relgradX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">relgradXmax</span> <span class="p">[</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span> <span class="p">(</span> <span class="n">rconv</span> <span class="o">&gt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_range_std_over_mean&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="p">]</span> <span class="o">&gt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;max_relgrad&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span> <span class="n">i_first_over_thresh_relgradY</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+
+            <span class="n">Y</span> <span class="o">=</span> <span class="n">relgradYmax</span> <span class="p">[</span> <span class="n">i_first_over_thresh_relgradY</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">]</span>
+
+            <span class="n">m1</span> <span class="o">=</span> <span class="n">rconv</span> <span class="p">[</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">i_first_over_thresh_relgradY</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span> <span class="n">i_first_over_thresh_relgradX</span> <span class="p">)</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span>  <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">:</span>
+
+            <span class="n">X</span> <span class="o">=</span> <span class="n">relgradXmax</span> <span class="p">[</span> <span class="n">i_first_over_thresh_relgradX</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">]</span>
+
+            <span class="n">m2</span> <span class="o">=</span> <span class="n">rconv</span> <span class="p">[</span> <span class="n">i_first_over_thresh_relgradX</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">irgradmagn</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span> <span class="p">,</span> <span class="mi">1</span> <span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">)</span> <span class="p">:</span>
+
+            <span class="n">chunk</span> <span class="o">=</span> <span class="p">(</span> <span class="n">relgradmagn_sub</span> <span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="n">irgradmagn</span> <span class="p">[</span> <span class="mi">0</span> <span class="p">]</span> <span class="p">:</span> <span class="n">irgradmagn</span> <span class="p">[</span> <span class="n">k</span> <span class="p">]</span> <span class="p">]</span> <span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>  <span class="o">&lt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;max_relgrad&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">chunk</span> <span class="p">)</span> <span class="o">&lt;=</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;max_relgrad_mean&#39;</span> <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span> <span class="p">)</span> <span class="p">)</span> <span class="p">:</span>
+
+                <span class="n">m3</span> <span class="o">=</span> <span class="n">rconv</span> <span class="p">[</span> <span class="n">irgradmagn</span> <span class="p">[</span> <span class="n">k</span> <span class="p">]</span> <span class="o">-</span><span class="mi">1</span> <span class="p">]</span>
+
+                <span class="k">break</span>
+
+        <span class="n">max_available_fit_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span> <span class="p">(</span> <span class="p">[</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="n">m1</span> <span class="p">,</span> <span class="n">m2</span> <span class="p">,</span> <span class="n">m3</span> <span class="p">]</span> <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">max_available_fit_range</span> <span class="o">&gt;=</span>  <span class="p">(</span><span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_range&#39;</span> <span class="p">]</span>  <span class="o">+</span> <span class="n">config</span> <span class="p">[</span> <span class="s1">&#39;min_fit_length&#39;</span> <span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span> <span class="p">(</span> <span class="p">)</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="n">X</span> <span class="p">,</span> <span class="n">Y</span> <span class="p">,</span> <span class="n">m1</span> <span class="p">,</span> <span class="n">m2</span> <span class="p">,</span> <span class="n">m3</span> 
+
+    <span class="k">else</span> <span class="p">:</span>
+
+        <span class="k">return</span> <span class="kc">False</span> <span class="p">,</span> <span class="n">max_available_fit_range</span> <span class="p">,</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span> <span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span></div>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Chandler Bing
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
