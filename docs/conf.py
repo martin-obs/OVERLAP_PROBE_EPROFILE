@@ -17,9 +17,9 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Math'
-copyright = '2022, Chandler Bing'
-author = 'Chandler Bing'
+project = 'Overlap Probe Eprofile'
+copyright = '2023, Martin Osborne'
+author = 'Martin Osborne'
 
 # The full version, including alpha/beta/rc tags
 release = '00.00.01'
