@@ -1,5 +1,5 @@
 sphinx_rtd_theme
-numpy'
+numpy
 netCDF4
 scipy
 matplotlib
