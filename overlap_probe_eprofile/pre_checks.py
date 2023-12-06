@@ -1,20 +1,12 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-'''
-    Started November 2022
-
-    functions to perform pre-checks on ceilometer data to be used
-
-    in calculating an overlap function.  This is a translation /
-
-    refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht 
-
-    and Melania Van Hove.
+"""Functions to perform pre-checks on CHM15k ceilometer data before it is used 
+in calculating corrected overlap functions.  This is a translation / refactoring 
+of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
 
     @author martin osborne: martin.osborne@metoffice.gov.uk
-
-'''
+"""
 
 import numpy as np
 import datetime
@@ -22,23 +14,55 @@ import scipy.signal as ss
 
 def at_least_one_profile ( flag ) :
 
-    '''
+    """Check there is at least one profile within the current time window
+    
+    Parameters
+    ----------
+    
+    flag : array of bools
+        Boolean array indicating which profiles are to be ignored as filled
+        missing data
+        
+    Returns
+    -------
+    
+    Result : bool
+        True or False for pass or fail
+        
+        
+    See also
+    --------
+    overlap_probe_eprofile.process_L1.Eprofile_Reader.fill_gaps
 
-    Check at least one profile in sliding window
-
-    '''
+    """
 
     return ~np.all ( flag )
 
 def all_clear_sky ( check , sci ) :
 
-    '''
+    """Check all profiles in current time window come with a clear sky condition
+    
+    Parameters
+    ----------
+    
+    check : bool
+        result of first check ( at_least_one_profile )
+    
+    sci : list of ints
+        sky conditions for each profile
+        
+    Returns
+    -------
+    
+    Result : bool
+        True or False for pass or fail
+        
+        
+    See also
+    --------
+    overlap_probe_eprofile.pre_checks.at_least_one_profile
 
-    Check all profiles in sliding window come with a clear 
-
-    sky condition
-
-    '''
+    """
 
     if check :
 
@@ -52,11 +76,31 @@ def enough_clear_range_cbi ( check ,  cbi , config ) :
 
     '''
 
-    Check all minimum cloud base heights leave enough 
-
-    bins in the fitting window as defined as 'min_fit_range' + 'min_fit_length'
-
-    and return lowest as new max range
+    Checks that the minimum cloud base height within the current time window leaves 
+    enough range bins below it to allow for a large enough fitting window 
+    as defined by 'min_fit_range' + 'min_fit_length' in config. If this test 
+    is passed, the lowest cloud base height is returned as the max_available_fit_range
+    
+    Parameters
+    ----------
+    
+    check : bool
+        result of all_clear_sky test
+    cbi : array of floats
+        cloud base heights for current time window  
+    config : class attribute
+        contains settings and thresholds
+    
+    Returns
+    -------
+    Result: bool
+        True or False for pass or fail
+    max_available_fit_range : float
+        maximum altitude at which test is passed
+        
+    See also
+    --------
+    overlap_probe_eprofile.pre_checks.all_clear_sky
 
     '''
 
@@ -82,19 +126,48 @@ def enough_clear_range_cbi ( check ,  cbi , config ) :
 
 def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_range ) :
 
-    '''
 
-    Calculate variance for each profile within altitude ranges
-
-    'min_range_std_over_mean' and 'max_available_fit_range' and
-
-    find the first altitude at which this is above 'max_std_over_mean'.
-
-    This is the new 'max_available_fit_range'. Checks that this leaves 
-
-    enough bins in the fitting window.
-
-    '''
+    """Calculates the variance for a subset of profiles within the current time window and 
+    within a defined altitude range. The subset is defined by 'dt_sliding_variance'
+    in config, and is that number of profiles wide. The subset is moved by one profile until 
+    the end of the curent time widow is reached. The altitude range is defined by 
+    'min_range_std_over_mean' (from config) and 'max_available_fit_range' from the previous
+    tests. The first altitude at which the variance exceeds 'max_std_over_mean', as defined in 
+    config, is returned. This is the new 'max_available_fit_range'. If this leaves enough bins 
+    in the available fitting window (defined by 'min_fit_range' + 'min_fit_length' in config) 
+    then the test is passed.
+    
+    Parameters
+    ----------
+    
+    check : bool
+        result of enough_clear_range_cbi test
+    rcs_0 : 2D array of floats
+        range corrected signal for current time window
+    rng : array of floats
+        range array for rcs_0
+    dt : array of datetimes
+        time array for current time window
+    config : class attribute
+        contains settings and thresholds
+    max_available_fit_range : float
+        maximum altitude at which all tests so far have been passed
+    
+    Returns
+    -------
+    Result: bool
+        True or False for pass or fail
+    max_available_fit_range : float
+        maximum altitude at which test is passed
+    variance : float
+        variance at max_available_fit_range
+        
+    See also
+    --------
+    overlap_probe_eprofile.pre_checks.enough_clear_range_cbi
+    
+    
+    """
 
     if check:
 
@@ -147,15 +220,30 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
 
 def conv2 ( x , direction = None ) :
 
-    '''
+    """Finds signal gradient using convolution. Matlab's conv2 and Python's 
+    scipy.signal.convolve2d behave slightly differently. This function reproduces 
+    the behaviour of the Matlab function. Used in 'check_grads' to match the 
+    Matlab code results.
+    
+    Parameters
+    ----------
+    
+    x : 2D array of floats
+        input signal 
+    direction : str
+        direction in which grdient is to be calculated. 'x' or 'y'
+    
+    Returns
+    -------
+    gradient : 2D array of floats
+        gradient of input signal along "direction""
+        
+    See also
+    --------
+    overlap_probe_eprofile.pre_checks.check_grads
+    
 
-    Matlab's conv2 and Python's scipy.signal.convolve2d behave slightly differently
-
-    This function reproduces the behaviour of the Matlab function. Used in 'check_grads'
-
-    to match the Matlab code results
-
-    '''
+    """
     
     if direction == 'y' :
         
@@ -170,25 +258,49 @@ def conv2 ( x , direction = None ) :
 
 def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
-    '''
-
-    Finds the range bin at which the relative gradients of the Log10 ( rcs ) in the X and 
-
-    Y directions are below 'max_relgrad' and checks that this leaves enough bins in the 
-
-    fitting window. Also find the highest range bin where the max and mean of the magnitide 
-
-    of the relative gradients from 'first_range_gradY' are less than 'max_relgrad' and
-
-    'max_relgrad_mean'
-
-    '''
+    """Calls conv2 to find the range bin at which the relative gradients of log10 ( rcs_0 ) along 
+    the altitude and time directions are below 'max_relgrad' and checks that this leaves 
+    enough bins in the fitting window. Also find the highest range bin where the 
+    max and mean of the magnitide of the relative gradients from 'first_range_gradY' 
+    are less than 'max_relgrad' and 'max_relgrad_mean'
+    
+    Parameters
+    ----------
+    
+    check : bool
+        result of running_variance test
+    rcs_0 : 2D array of floats
+        range corrected signal for current time window
+    rng : array of floats
+        range array for rcs_0
+    dt : array of datetimes
+        time array for current time window
+    config : class attribute
+        contains settings and thresholds
+    max_available_fit_range : float
+        maximum altitude at which all tests so far have been passed
+    
+    Returns
+    -------
+    Result: bool
+        True or False for pass or fail
+    max_available_fit_range : float
+        maximum altitude at which test is passed
+    variance : float
+        variance at max_available_fit_range
+        
+    See also
+    --------
+    overlap_probe_eprofile.pre_checks.running_variance test   
+    overlap_probe_eprofile.pre_checks.conv2
+    
+    """
 
     if check :
 
         X , Y = 0.0 , 0.0 
 
-        m1, m2 , m3 = max_available_fit_range , max_available_fit_range , max_available_fit_range
+        m1 = m2 = m3 = max_available_fit_range 
 
         min_r = np.where ( rng >= config [ 'min_range_std_over_mean' ].to_numpy ( ) ) [ 0 ] [ 0 ]
 
@@ -236,7 +348,7 @@ def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
             chunk = ( relgradmagn_sub [ : , irgradmagn [ 0 ] : irgradmagn [ k ] ] )
 
-            if (  np.nanmax(chunk)  <= config [ 'max_relgrad' ].to_numpy( ) ) and (np.nanmean(chunk ) <= config [ 'max_relgrad_mean' ].to_numpy( ) ) :
+            if ( np.nanmax(chunk)  <= config [ 'max_relgrad' ].to_numpy( ) ) and (np.nanmean(chunk ) <= config [ 'max_relgrad_mean' ].to_numpy( ) ) :
 
                 m3 = rconv [ irgradmagn [ k ] -1 ]
 

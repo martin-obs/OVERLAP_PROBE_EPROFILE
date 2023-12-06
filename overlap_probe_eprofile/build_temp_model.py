@@ -84,7 +84,7 @@ class Temperature_model_builder ( object ) :
         
         saved as a Pandas dataframe, this will be changed to a named tuple in future
         
-        for easier access
+        for easier access.
         
         '''
 
