@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-'''
+"""This module contans functions to perform checks on chuncks of CHM15k data to identify 
+if the profiles can be used in calculating a corrected overlap function.  This is a 
+translation / refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania 
+Van Hove.
 
-functions to perform processing and checks on ceilometer data to be used
-
-in calculating an overlap function.  This is a translation /
-
-refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht 
-
-and Melania Van Hove.
+The checks are repetedly applied to small, shifting sections of the data 
+defined by shifting altitude windows. This is computationally expensive
+and when done using loops in Python takes a long time - much longer than in Matlab. 
+To speed things up the functions have been vectorised - the 1D mean input signal is repeated into 
+a second dimention by the total number of shifting windows. The resulting 2D array is 
+then masked using Numpy's masking function. The mask is constructed so that the n\ :sup:`th` column 
+of the 2D array contains unmasked values only within the n\ :sup:`th` shifting altitude window. 
+The checks are then performed on this masked array in one operation. 
 
 @author martin osborne: martin.osborne@metoffice.gov.uk
+"""
 
-'''
+
+
 import numpy as np
 import scipy.signal as ss
 from copy import deepcopy
@@ -22,26 +28,45 @@ import pandas as pd
 np.seterr(divide = 'ignore') 
 np.seterr(invalid = 'ignore')
 
-def _make_mask ( fl , fb , rng ) :
+def make_mask ( fit_length , fit_begin , rng ) :
     
-    '''
+    """Takes in arrays of 'fit_length' and 'fit_begin' that define the shiting 
+    altitude windows within which a linear regressesion is to be performed. These 
+    are worked up into a mask that can be applied to an array consisting of 
+    the repeated mean log signal.
     
-    Takes in 'fit_length' and 'fit_begin' ranges for the windows within 
+    The mask is returned in two parts that can be appled to the top and bottom
+    of the 2D data array as some checks require the altitude window to start from
+    a constant altitude bin. 
+        
+    Parameters
+    ----------
     
-    which a simple linear regressesion is to be performed on the mean log signal
+    fit_length : 1D array
+        number of altitude bins in each fitting window
+    fit_begin  : 1D array   
+        altitude bins to start each fitting window
+    rng : 1D array
+        altitude array  
+        
+    Returns
+    -------
     
-    being checked. These are worked up into two masks that can be applied to an 
+    top_mask : 2D array of bools
+        mask defining the upper bounds of the the altitude windows
+    bottom_mask : 2D array of bools
+        mask defining the lower bounds of the altitude windows
+    n : 1D array
+        total lengths of each unmasked window
+        
+    """
+
     
-    array consisting of the repeated mean log signal.
-    
-    
-    '''
-    
-    wbmax = fb [ -1 ]
+    wbmax = fit_begin [ -1 ]
        
-    wbegin = np.repeat ( fb  , len (fl ) )
+    wbegin = np.repeat ( fit_begin  , len ( fit_length ) )
        
-    wlen = np.tile ( fl  , len ( fb )  )
+    wlen = np.tile ( fit_length  , len ( fit_begin )  )
        
     wstop = wbegin + wlen
 
@@ -59,15 +84,32 @@ def _make_mask ( fl , fb , rng ) :
                
     return top_mask , bottom_mask , n 
    
-def _simple_linear_fit ( n , x , y ) :
+def simple_linear_fit ( n , x , y ) :
     
-    '''
+    """
     
-    Calculates the intercepts (alphas) and slopes (betas) of a simple linear fit
-    
-    to the unmasked values in each column of masked array y
+    Calculates the intercepts (alphas) and slopes (betas) of a simple linear fit 
+    to the unmasked values in each column of masked array y. 
         
-    '''
+    Parameters
+    ----------
+    
+    n : 1D array
+        total lengths of each unmasked window
+    x : 2D masked array
+        altitude array with masked values defining fitting windows
+    y : 2D masked array
+        data array - regression is done on columns
+              
+    Returns
+    -------
+    
+    alpha : 1D array of floats
+        intercepts of regression
+    beta : 1D array of floats
+        slopes of regression
+        
+    """
 
     x = np.ma.masked_invalid ( x ) 
     
@@ -83,15 +125,31 @@ def _simple_linear_fit ( n , x , y ) :
 
 def conv3d ( x , direction = None ) :
 
-    '''
-
-    Matlab's convolve and Python's scipy.signal.convolve behave slightly differently
-
-    This function reproduces the behaviour of the Matlab function. Used in 
+    """Finds the signal gradient along a stated direction for each layer of a 3D 
+    array using convolution. Matlab's convolve and Python's scipy.signal.convolve 
+    behave slightly differently. This function reproduces the behaviour of the 
+    Matlab function. Used in 'find_gradient_of_corrected_signal' to match the 
+    Matlab code results.
     
-    'find_gradient_of_corrected_signal' to match the Matlab code results
+    Parameters
+    ----------
+    
+    x : 3D array of floats
+        input signal 
+    direction : str
+        direction in which grdient is to be calculated. 'x' or 'y'
+    
+    Returns
+    -------
+    gradient : 3D array of floats
+        gradient of input signal along "direction""
+        
+    See also
+    --------
+    overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal
+    
 
-    '''
+    """
 
     if direction == 'x' :
         
@@ -115,7 +173,7 @@ def _check_regression ( p , masked_signal , masked_signal_whole_zone , masked_rn
         
     return poly , resid , resid_whole_zone
     
-def _make_ovp_fc ( signal_all , p , ov , rng , top_mask , config ) :
+def make_ovp_fc ( signal_all , p , ov , rng , top_mask , config ) :
         
     signal_all = np.repeat ( signal_all [ : , np.newaxis ], np.shape ( top_mask ) [ 1 ] , axis = 1 )
     
@@ -143,11 +201,33 @@ def _make_ovp_fc ( signal_all , p , ov , rng , top_mask , config ) :
 
 def find_gradient_of_corrected_signal ( rcs_0 , rng , overlap_corr_factor , top_mask , max_available_fit_range , condition1 , config ):
     
+    """Calls conv3d to find the signal gradients.
+    
+    Parameters
+    ----------
+    
+    x : 3D array of floats
+        input signal 
+    direction : str
+        direction in which grdient is to be calculated. 'x' or 'y'
+    
+    Returns
+    -------
+    gradient : 3D array of floats
+        gradient of input signal along "direction""
+        
+    See also
+    --------
+    overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal
+    
+
+    """
+    
     np.seterr(divide='ignore')
        
     index_range_for_grad = ( rng >= config [ 'min_range_std_over_mean' ].values [ 0 ] ) * ( rng < max_available_fit_range )
      
-    deep_rcs_0 = np.repeat ( rcs_0.T [ index_range_for_grad , : , np.newaxis ], np.shape ( top_mask ) [ 1 ] , axis = 2 )
+    deep_rcs_0 = np.repeat ( rcs_0.T [ index_range_for_grad , : , np.newaxis ] , np.shape ( top_mask ) [ 1 ] , axis = 2 )
     
     deep_rcs_0 = deep_rcs_0 [ : , : , condition1 ]
     
@@ -290,7 +370,7 @@ def do_regresion ( rcs_0 , rng , max_available_fit_range , config , ov ) :
     
     #print (fb)
     
-    top_mask , bottom_mask , n  = _make_mask ( fl , fb , rng )
+    top_mask , bottom_mask , n  = make_mask ( fl , fb , rng )
     
     mask = np.array ( top_mask + bottom_mask, dtype = bool ) 
     
@@ -310,11 +390,11 @@ def do_regresion ( rcs_0 , rng , max_available_fit_range , config , ov ) :
     
     masked_rng_whole_zone = np.ma.masked_array ( deep_rng , mask=mask_for_whole_zone )
     
-    p = _simple_linear_fit ( n , masked_rng , masked_signal )  
+    p = simple_linear_fit ( n , masked_rng , masked_signal )  
     
     poly , resid , resid_whole_zone = _check_regression ( p , masked_signal , masked_signal_whole_zone , masked_rng , masked_rng_whole_zone , n )
     
-    overlap_corr_factor , ovp_fc , valmax = _make_ovp_fc ( signal_all , p , ov , rng , top_mask , config )  
+    overlap_corr_factor , ovp_fc , valmax = make_ovp_fc ( signal_all , p , ov , rng , top_mask , config )  
     
     condition1 = _check_conditions_1 ( p , poly , resid , resid_whole_zone , ovp_fc , ov , valmax , config)
 

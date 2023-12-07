@@ -248,9 +248,9 @@
 </div>
 <div class="section" id="module-overlap_probe_eprofile.pre_checks">
 <span id="overlap-probe-eprofile-pre-checks-module"></span><h2>overlap_probe_eprofile.pre_checks module<a class="headerlink" href="#module-overlap_probe_eprofile.pre_checks" title="Permalink to this headline">¶</a></h2>
-<p>Functions to perform pre-checks on CHM15k ceilometer data before it is used
-in calculating corrected overlap functions.  This is a translation / refactoring
-of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.</p>
+<p>This module contains functions to perform pre-checks on CHM15k ceilometer data
+before it is used in calculating corrected overlap functions.  This is a translation
+/ refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.</p>
 <blockquote>
 <div><p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
 </div></blockquote>
@@ -337,10 +337,10 @@ are less than ‘max_relgrad’ and ‘max_relgrad_mean’</p>
 <dl class="py function">
 <dt id="overlap_probe_eprofile.pre_checks.conv2">
 <code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">conv2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#conv2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.conv2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds signal gradient using convolution. Matlab’s conv2 and Python’s
-scipy.signal.convolve2d behave slightly differently. This function reproduces
-the behaviour of the Matlab function. Used in ‘check_grads’ to match the
-Matlab code results.</p>
+<dd><p>Finds signal gradient along the stated direction using convolution.
+Matlab’s conv2 and Python’s scipy.signal.convolve2d behave slightly differently.
+This function reproduces the behaviour of the Matlab function. Used in
+‘check_grads’ to match the Matlab code results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -645,10 +645,18 @@ works with data files with missing profiles - please ignore</p>
 </div>
 <div class="section" id="module-overlap_probe_eprofile.process_checks">
 <span id="overlap-probe-eprofile-process-checks-module"></span><h2>overlap_probe_eprofile.process_checks module<a class="headerlink" href="#module-overlap_probe_eprofile.process_checks" title="Permalink to this headline">¶</a></h2>
-<p>functions to perform processing and checks on ceilometer data to be used</p>
-<p>in calculating an overlap function.  This is a translation /</p>
-<p>refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht</p>
-<p>and Melania Van Hove.</p>
+<p>This module contans functions to perform checks on chuncks of CHM15k data to identify
+if the profiles can be used in calculating a corrected overlap function.  This is a
+translation / refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania
+Van Hove.</p>
+<p>The checks are repetedly applied to small, shifting sections of the data
+defined by shifting altitude windows. This is computationally expensive
+and when done using loops in Python takes a long time - much longer than in Matlab.
+To speed things up the functions have been vectorised - the 1D mean input signal is repeated into
+a second dimention by the total number of shifting windows. The resulting 2D array is
+then masked using Numpy’s masking function. The mask is constructed so that the n<sup>th</sup> column
+of the 2D array contains unmasked values only within the n<sup>th</sup> shifting altitude window.
+The checks are then performed on this masked array in one operation.</p>
 <p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
 <dl class="py function">
 <dt id="overlap_probe_eprofile.process_checks.check_polyfit">
@@ -658,9 +666,29 @@ works with data files with missing profiles - please ignore</p>
 <dl class="py function">
 <dt id="overlap_probe_eprofile.process_checks.conv3d">
 <code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">conv3d</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#conv3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.conv3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Matlab’s convolve and Python’s scipy.signal.convolve behave slightly differently</p>
-<p>This function reproduces the behaviour of the Matlab function. Used in</p>
-<p>‘find_gradient_of_corrected_signal’ to match the Matlab code results</p>
+<dd><p>Finds the signal gradient along a stated direction for each layer of a 3D
+array using convolution. Matlab’s convolve and Python’s scipy.signal.convolve
+behave slightly differently. This function reproduces the behaviour of the
+Matlab function. Used in ‘find_gradient_of_corrected_signal’ to match the
+Matlab code results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>3D array of floats</em>) – input signal</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>3D array of floats</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal" title="overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -679,17 +707,92 @@ works with data files with missing profiles - please ignore</p>
 <dl class="py function">
 <dt id="overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal">
 <code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">find_gradient_of_corrected_signal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap_corr_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#find_gradient_of_corrected_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calls conv3d to find the signal gradients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>3D array of floats</em>) – input signal</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>3D array of floats</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal" title="overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal</span></code></a></p>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt id="overlap_probe_eprofile.process_checks.find_savgol_slope">
 <code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">find_savgol_slope</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ovp_fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#find_savgol_slope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.find_savgol_slope" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py function">
+<dt id="overlap_probe_eprofile.process_checks.make_mask">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">make_mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fit_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_begin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#make_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.make_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in arrays of ‘fit_length’ and ‘fit_begin’ that define the shiting
+altitude windows within which a linear regressesion is to be performed. These
+are worked up into a mask that can be applied to an array consisting of
+the repeated mean log signal.</p>
+<p>The mask is returned in two parts that can be appled to the top and bottom
+of the 2D data array as some checks require the altitude window to start from
+a constant altitude bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fit_length</strong> (<em>1D array</em>) – number of altitude bins in each fitting window</p></li>
+<li><p><strong>fit_begin</strong> (<em>1D array</em>) – altitude bins to start each fitting window</p></li>
+<li><p><strong>rng</strong> (<em>1D array</em>) – altitude array</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the altitude windows</p></li>
+<li><p><strong>bottom_mask</strong> (<em>2D array of bools</em>) – mask defining the lower bounds of the altitude windows</p></li>
+<li><p><strong>n</strong> (<em>1D array</em>) – total lengths of each unmasked window</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.process_checks.make_ovp_fc">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">make_ovp_fc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#make_ovp_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.make_ovp_fc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.process_checks.simple_linear_fit">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">simple_linear_fit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#simple_linear_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.simple_linear_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the intercepts (alphas) and slopes (betas) of a simple linear fit
+to the unmasked values in each column of masked array y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>1D array</em>) – total lengths of each unmasked window</p></li>
+<li><p><strong>x</strong> (<em>2D masked array</em>) – altitude array with masked values defining fitting windows</p></li>
+<li><p><strong>y</strong> (<em>2D masked array</em>) – data array - regression is done on columns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>alpha</strong> (<em>1D array of floats</em>) – intercepts of regression</p></li>
+<li><p><strong>beta</strong> (<em>1D array of floats</em>) – slopes of regression</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="module-overlap_probe_eprofile.sort_samples">
 <span id="overlap-probe-eprofile-sort-samples-module"></span><h2>overlap_probe_eprofile.sort_samples module<a class="headerlink" href="#module-overlap_probe_eprofile.sort_samples" title="Permalink to this headline">¶</a></h2>
-<p>Started December 2022</p>
 <p>functions to perform processing and checks on ceilometer data to be used</p>
 <p>in calculating an overlap function.  This is a translation /</p>
 <p>refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht</p>

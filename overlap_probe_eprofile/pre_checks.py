@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-"""Functions to perform pre-checks on CHM15k ceilometer data before it is used 
-in calculating corrected overlap functions.  This is a translation / refactoring 
-of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
+"""This module contains functions to perform pre-checks on CHM15k ceilometer data 
+before it is used in calculating corrected overlap functions.  This is a translation 
+/ refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
 
     @author martin osborne: martin.osborne@metoffice.gov.uk
 """
@@ -220,10 +220,10 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
 
 def conv2 ( x , direction = None ) :
 
-    """Finds signal gradient using convolution. Matlab's conv2 and Python's 
-    scipy.signal.convolve2d behave slightly differently. This function reproduces 
-    the behaviour of the Matlab function. Used in 'check_grads' to match the 
-    Matlab code results.
+    """Finds signal gradient along the stated direction using convolution. 
+    Matlab's conv2 and Python's scipy.signal.convolve2d behave slightly differently. 
+    This function reproduces the behaviour of the Matlab function. Used in 
+    'check_grads' to match the Matlab code results.
     
     Parameters
     ----------

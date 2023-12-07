@@ -2,7 +2,6 @@
 #!/usr/bin/env python
 
 '''
-Started December 2022
 
 functions to perform processing and checks on ceilometer data to be used
 
