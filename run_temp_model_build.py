@@ -8,7 +8,7 @@ Created on Thu May 25 10:22:04 2023
 
 import overlap_probe_eprofile.build_temp_model as btm
 
-import overlap_probe_eprofile.write_to_netcdf as w2nc
+import overlap_probe_eprofile.overlap_utils as w2nc
 
 path_to_csvs = '/scratch/mosborne/overlap_results/LINDENBERG_non_fixed_window/'
 
