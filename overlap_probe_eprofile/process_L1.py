@@ -13,7 +13,7 @@
    are included in the config.txt file. Using a different reference overlap would 
    probably require different values for these thresholds.  
    
-   This is a refactoring of code written by Maxime Hervo, Rolf Ruefenacht and 
+   This is a refactoring of code written by Maxime Hervo, Yann Poltera, Rolf Ruefenacht and 
    Melania Van Hove in Matlab
    
    @author martin osborne: martin.osborne@metoffice.gov.uk
@@ -35,9 +35,9 @@ from scipy import stats
 from scipy.interpolate import interpn
 import os
 
-import overlap_probe_eprofile.pre_checks as pc
-import overlap_probe_eprofile.process_checks as proc
-import overlap_probe_eprofile.sort_samples as srt
+import overlap_probe_eprofile.find_fitting_windows as ffw
+import overlap_probe_eprofile.find_candidate_functions as fcf
+import overlap_probe_eprofile.final_selection as fs
 
 
 class Eprofile_Reader ( object ) :
@@ -458,7 +458,7 @@ class Eprofile_Reader ( object ) :
         
         if np.sum(self.passed_inds) != 0: 
         
-            self.intervals , self.rng_intervals , self.final_ovs , self.temperatures , self.final_ov = srt.remove_failed ( self.results , self.passed_inds , self.rng , self.config )
+            self.intervals , self.rng_intervals , self.final_ovs , self.temperatures , self.final_ov = fs.remove_failed ( self.results , self.passed_inds , self.rng , self.config )
             
             self.write_result_to_csv ( save_path  )
                 
@@ -528,15 +528,15 @@ class Eprofile_Reader ( object ) :
   
                 results [ int_str ] = {}
 
-                check1 = pc.at_least_one_profile ( self.missing_flag [ s : f ] )
+                check1 = ffw.at_least_one_profile ( self.missing_flag [ s : f ] )
 
-                check2 = pc.all_clear_sky ( check1 ,  self.sci [ s : f ] ) 
+                check2 = ffw.all_clear_sky ( check1 ,  self.sci [ s : f ] ) 
 
-                check3 , max_available_fit_range1 = pc.enough_clear_range_cbi ( check2 , self.cbh [ s : f , : ] , self.config )
+                check3 , max_available_fit_range1 = ffw.enough_clear_range_cbi ( check2 , self.cbh [ s : f , : ] , self.config )
 
-                check4 , max_available_fit_range2 , variance = pc.running_variance ( check3 , self.rcs_0 [ s : f , : ] , self.rng , dt [ s : f ] , self.config , max_available_fit_range1 )
+                check4 , max_available_fit_range2 , variance = ffw.running_variance ( check3 , self.rcs_0 [ s : f , : ] , self.rng , dt [ s : f ] , self.config , max_available_fit_range1 )
 
-                check5 , max_available_fit_range , X , Y , m1 , m2 , m3  = pc.check_grads ( check4 ,  self.rcs_0 [ s : f , : ]  , self.rng , self.config , max_available_fit_range2 )
+                check5 , max_available_fit_range , X , Y , m1 , m2 , m3  = ffw.check_grads ( check4 ,  self.rcs_0 [ s : f , : ]  , self.rng , self.config , max_available_fit_range2 )
 
                 max_fit_ranges = [ max_available_fit_range1 , max_available_fit_range2 , max_available_fit_range , m1 , m2 , m3 ]
 
@@ -544,7 +544,7 @@ class Eprofile_Reader ( object ) :
 
                     results [ int_str ] [ 'pre-check results' ] = 'passed pre-checks. Max range is = ' + str ( round ( max_available_fit_range , 1  ) )  + 'm' 
                     
-                    poly_results = proc.check_polyfit ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
+                    poly_results = fcf.do_quality_checks ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
                     
                     results [ int_str ] [ 'data_frame' ] = poly_results
                     
@@ -559,7 +559,7 @@ class Eprofile_Reader ( object ) :
                     
         self.results = results
         
-        self.passed_inds = srt.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
+        self.passed_inds = fs.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
 
 
 

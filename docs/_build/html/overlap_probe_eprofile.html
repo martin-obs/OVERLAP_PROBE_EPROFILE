@@ -85,10 +85,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.build_temp_model">overlap_probe_eprofile.build_temp_model module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.ceilo_plotter">overlap_probe_eprofile.ceilo_plotter module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.pre_checks">overlap_probe_eprofile.pre_checks module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.find_fitting_windows">overlap_probe_eprofile.find_fitting_windows module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.process_L1">overlap_probe_eprofile.process_L1 module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.process_checks">overlap_probe_eprofile.process_checks module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.sort_samples">overlap_probe_eprofile.sort_samples module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.find_candidate_functions">overlap_probe_eprofile.find_candidate_functions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.final_selection">overlap_probe_eprofile.final_selection module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.overlap_utils">overlap_probe_eprofile.overlap_utils module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.version">overlap_probe_eprofile.version module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile.write_to_netcdf">overlap_probe_eprofile.write_to_netcdf module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-overlap_probe_eprofile">Module contents</a></li>
@@ -246,18 +247,22 @@
 <dd></dd></dl>
 
 </div>
-<div class="section" id="module-overlap_probe_eprofile.pre_checks">
-<span id="overlap-probe-eprofile-pre-checks-module"></span><h2>overlap_probe_eprofile.pre_checks module<a class="headerlink" href="#module-overlap_probe_eprofile.pre_checks" title="Permalink to this headline">¶</a></h2>
-<p>This module contains functions to perform pre-checks on CHM15k ceilometer data
-before it is used in calculating corrected overlap functions.  This is a translation
-/ refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.</p>
+<div class="section" id="module-overlap_probe_eprofile.find_fitting_windows">
+<span id="overlap-probe-eprofile-find-fitting-windows-module"></span><h2>overlap_probe_eprofile.find_fitting_windows module<a class="headerlink" href="#module-overlap_probe_eprofile.find_fitting_windows" title="Permalink to this headline">¶</a></h2>
+<p>This module contans functions to perform the checks and processing decribed in
+section 1 of the appendix of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a>
+titled “Determination of the fitting intervals”</p>
+<p>This is a translation / refactoring of Matlab code written by Maxime Hervo, Yann Poltera,
+Rolf Ruefenacht and Melania Van Hove.</p>
 <blockquote>
 <div><p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
 </div></blockquote>
 <dl class="py function">
-<dt id="overlap_probe_eprofile.pre_checks.all_clear_sky">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">all_clear_sky</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sci</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#all_clear_sky"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.all_clear_sky" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check all profiles in current time window come with a clear sky condition</p>
+<dt id="overlap_probe_eprofile.find_fitting_windows.all_clear_sky">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_fitting_windows.</span></code><code class="sig-name descname"><span class="pre">all_clear_sky</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sci</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_fitting_windows.html#all_clear_sky"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_fitting_windows.all_clear_sky" title="Permalink to this definition">¶</a></dt>
+<dd><p>Part 2 of the checks described in section 1 of the appendix of
+<a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<p>Check all profiles in current time window come with a clear sky condition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -274,14 +279,16 @@ before it is used in calculating corrected overlap functions.  This is a transla
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.pre_checks.at_least_one_profile" title="overlap_probe_eprofile.pre_checks.at_least_one_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.at_least_one_profile</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.at_least_one_profile</span></code></p>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.pre_checks.at_least_one_profile">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">at_least_one_profile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#at_least_one_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.at_least_one_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check there is at least one profile within the current time window</p>
+<dt id="overlap_probe_eprofile.find_fitting_windows.at_least_one_profile">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_fitting_windows.</span></code><code class="sig-name descname"><span class="pre">at_least_one_profile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_fitting_windows.html#at_least_one_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_fitting_windows.at_least_one_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Part 1 of the checks described in section 1 of the appendix of
+<a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a>
+Check there is at least one profile within the current time window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>flag</strong> (<em>array of bools</em>) – Boolean array indicating which profiles are to be ignored as filled
@@ -301,9 +308,11 @@ missing data</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.pre_checks.check_grads">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">check_grads</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#check_grads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.check_grads" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls conv2 to find the range bin at which the relative gradients of log10 ( rcs_0 ) along
+<dt id="overlap_probe_eprofile.find_fitting_windows.check_grads">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_fitting_windows.</span></code><code class="sig-name descname"><span class="pre">check_grads</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_fitting_windows.html#check_grads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_fitting_windows.check_grads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks described in section 3.1.2, 3.2 and 3.4 of the appendix of
+<a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<p>Calls conv2d to find the range bin at which the relative gradients of log10 ( rcs_0 ) along
 the altitude and time directions are below ‘max_relgrad’ and checks that this leaves
 enough bins in the fitting window. Also find the highest range bin where the
 max and mean of the magnitide of the relative gradients from ‘first_range_gradY’
@@ -330,41 +339,16 @@ are less than ‘max_relgrad’ and ‘max_relgrad_mean’</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.pre_checks.running_variance" title="overlap_probe_eprofile.pre_checks.running_variance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.running_variance</span></code></a>, <a class="reference internal" href="#overlap_probe_eprofile.pre_checks.conv2" title="overlap_probe_eprofile.pre_checks.conv2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.conv2</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.running_variance</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.conv2</span></code></p>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.pre_checks.conv2">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">conv2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#conv2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.conv2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds signal gradient along the stated direction using convolution.
-Matlab’s conv2 and Python’s scipy.signal.convolve2d behave slightly differently.
-This function reproduces the behaviour of the Matlab function. Used in
-‘check_grads’ to match the Matlab code results.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>2D array of floats</em>) – input signal</p></li>
-<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>2D array of floats</p>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.pre_checks.check_grads" title="overlap_probe_eprofile.pre_checks.check_grads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.check_grads</span></code></a></p>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.pre_checks.enough_clear_range_cbi">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">enough_clear_range_cbi</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#enough_clear_range_cbi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.enough_clear_range_cbi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks that the minimum cloud base height within the current time window leaves
+<dt id="overlap_probe_eprofile.find_fitting_windows.enough_clear_range_cbi">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_fitting_windows.</span></code><code class="sig-name descname"><span class="pre">enough_clear_range_cbi</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_fitting_windows.html#enough_clear_range_cbi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_fitting_windows.enough_clear_range_cbi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks described in section 2 of the appendix of
+<a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<p>Checks that the minimum cloud base height within the current time window leaves
 enough range bins below it to allow for a large enough fitting window
 as defined by ‘min_fit_range’ + ‘min_fit_length’ in config. If this test
 is passed, the lowest cloud base height is returned as the max_available_fit_range</p>
@@ -386,14 +370,16 @@ is passed, the lowest cloud base height is returned as the max_available_fit_ran
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.pre_checks.all_clear_sky" title="overlap_probe_eprofile.pre_checks.all_clear_sky"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.all_clear_sky</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.all_clear_sky</span></code></p>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.pre_checks.running_variance">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.pre_checks.</span></code><code class="sig-name descname"><span class="pre">running_variance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/pre_checks.html#running_variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.pre_checks.running_variance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the variance for a subset of profiles within the current time window and
+<dt id="overlap_probe_eprofile.find_fitting_windows.running_variance">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_fitting_windows.</span></code><code class="sig-name descname"><span class="pre">running_variance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">check</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_fitting_windows.html#running_variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_fitting_windows.running_variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks described in section 3.1.1 of the appendix of
+<a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<p>Calculates the variance for a subset of profiles within the current time window and
 within a defined altitude range. The subset is defined by ‘dt_sliding_variance’
 in config, and is that number of profiles wide. The subset is moved by one profile until
 the end of the curent time widow is reached. The altitude range is defined by
@@ -424,7 +410,7 @@ then the test is passed.</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.pre_checks.enough_clear_range_cbi" title="overlap_probe_eprofile.pre_checks.enough_clear_range_cbi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.enough_clear_range_cbi</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.enough_clear_range_cbi</span></code></p>
 </div>
 </dd></dl>
 
@@ -441,12 +427,12 @@ the processing. This module was developed using a specific overlap function,
 that is “TUB120011_20121112_1024”, for which empirical thresholds and settings
 are included in the config.txt file. Using a different reference overlap would
 probably require different values for these thresholds.</p>
-<p>This is a refactoring of code written by Maxime Hervo, Rolf Ruefenacht and
+<p>This is a refactoring of code written by Maxime Hervo, Yann Poltera, Rolf Ruefenacht and
 Melania Van Hove in Matlab</p>
 <p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#module-overlap_probe_eprofile.pre_checks" title="overlap_probe_eprofile.pre_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks</span></code></a>, <a class="reference internal" href="#module-overlap_probe_eprofile.process_checks" title="overlap_probe_eprofile.process_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks</span></code></a>, <a class="reference internal" href="#module-overlap_probe_eprofile.sort_samples" title="overlap_probe_eprofile.sort_samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.sort_samples</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.sort_samples</span></code></p>
 </div>
 <dl class="py class">
 <dt id="overlap_probe_eprofile.process_L1.Eprofile_Reader">
@@ -487,7 +473,7 @@ reason for failiure as a string.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#module-overlap_probe_eprofile.pre_checks" title="overlap_probe_eprofile.pre_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks</span></code></a></dt><dd><p>Returns True of False plus some details for various pre-checks.</p>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks</span></code></dt><dd><p>Returns True of False plus some details for various pre-checks.</p>
 </dd>
 </dl>
 </div>
@@ -643,99 +629,216 @@ works with data files with missing profiles - please ignore</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-overlap_probe_eprofile.process_checks">
-<span id="overlap-probe-eprofile-process-checks-module"></span><h2>overlap_probe_eprofile.process_checks module<a class="headerlink" href="#module-overlap_probe_eprofile.process_checks" title="Permalink to this headline">¶</a></h2>
-<p>This module contans functions to perform checks on chuncks of CHM15k data to identify
-if the profiles can be used in calculating a corrected overlap function.  This is a
-translation / refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania
-Van Hove.</p>
-<p>The checks are repetedly applied to small, shifting sections of the data
+<div class="section" id="module-overlap_probe_eprofile.find_candidate_functions">
+<span id="overlap-probe-eprofile-find-candidate-functions-module"></span><h2>overlap_probe_eprofile.find_candidate_functions module<a class="headerlink" href="#module-overlap_probe_eprofile.find_candidate_functions" title="Permalink to this headline">¶</a></h2>
+<p>This module contans functions to perform the checks and processing decribed in
+section 2 of the appendix of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a>
+titled “Quality check of fits and determination of a set of overlap correction candidates”</p>
+<p>As descibed in the linked paper, the checks are repetedly applied to small, shifting sections of the data
 defined by shifting altitude windows. This is computationally expensive
 and when done using loops in Python takes a long time - much longer than in Matlab.
 To speed things up the functions have been vectorised - the 1D mean input signal is repeated into
-a second dimention by the total number of shifting windows. The resulting 2D array is
+a second dimension to be the total number of shifting windows wide. The resulting 2D array is
 then masked using Numpy’s masking function. The mask is constructed so that the n<sup>th</sup> column
 of the 2D array contains unmasked values only within the n<sup>th</sup> shifting altitude window.
 The checks are then performed on this masked array in one operation.</p>
 <p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
 <dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.check_polyfit">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">check_polyfit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#check_polyfit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.check_polyfit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.conv3d">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">conv3d</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#conv3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.conv3d" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the signal gradient along a stated direction for each layer of a 3D
-array using convolution. Matlab’s convolve and Python’s scipy.signal.convolve
-behave slightly differently. This function reproduces the behaviour of the
-Matlab function. Used in ‘find_gradient_of_corrected_signal’ to match the
-Matlab code results.</p>
+<dt id="overlap_probe_eprofile.find_candidate_functions.check_fits">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">check_fits</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#check_fits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.check_fits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls make_mask and simple_linear_fit to make straight line fits to the
+mean log signal as in Eqn. (8) of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a>
+within the altitude ranges defined by ‘fit_length’ and ‘fit_begin’ and checks the plausibility of the fits.</p>
+<p>The checks applied in this function are described in Appendix 4 and 5
+of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<p>The following checks must be passed:</p>
+<p>The slopes must be between ‘min_expected_slope’ and ‘max_expected_slope’,
+and the intercepts must be between ‘min_expected_zero_fit_value’ and ‘max_expected_zero_fit_value’.</p>
+<p>The residuals between the fits and the mean log signal within the relevant altitude
+window must be less than ‘thresh_resid_rel’, and the residuals betwen the fits and
+the mean log signal within the altitude ranges extended down to ‘min_fit_range’
+must be less than ‘thresh_resid_whole_zone’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>3D array of floats</em>) – input signal</p></li>
-<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
+<li><p><strong>rcs_0</strong> (<em>2D array</em>) – range corrected signal within current time window</p></li>
+<li><p><strong>rng</strong> (<em>array</em>) – range array for CHM15k</p></li>
+<li><p><strong>max_available_fit_range</strong> (<em>float</em>) – maximum altitude at which all pre_checks were passed</p></li>
+<li><p><strong>config</strong> (<em>pandas data frame</em>) – thresholds and setting</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>3D array of floats</p>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>p</strong> (<em>array object</em>) – object returned by simple_linear_fit - slopes and intercepts of regressions
+returned by simple_linear_fit</p></li>
+<li><p><strong>poly</strong> (<em>2D array</em>) – regression lines</p></li>
+<li><p><strong>resid</strong> (<em>array of floats</em>) – sum of the squares of the residuals between poly and data</p></li>
+<li><p><strong>resid_whole_zone</strong> (<em>array of floats</em>) – max of the absolute value of the residuals between poly and data</p></li>
+<li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the altitude windows</p></li>
+<li><p><strong>bottom_mask</strong> (<em>2D array of bools</em>) – mask defining the lower bounds of the altitude windows</p></li>
+<li><p><strong>condition1</strong> (<em>boolean array</em>) – results of checks on the plausability of the linear regressions, the
+goodness of the fit and the maximum values of the corrected overlap
+functions. True for pass and False for fail</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal" title="overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.make_mask</span></code>, <a class="reference internal" href="#overlap_probe_eprofile.overlap_utils.simple_linear_fit" title="overlap_probe_eprofile.overlap_utils.simple_linear_fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.overlap_utils.simple_linear_fit</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.get_regression_residuals</span></code></p>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.create_results_df">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">create_results_df</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resid_whole_zone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ovp_fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relgrad_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relgrad_mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_min_slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_min_slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditionals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#create_results_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.create_results_df" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.do_regresion">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">do_regresion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#do_regresion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.do_regresion" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the coeffficients p of a simple linear regression within sliding</p>
-<p>windows of different legths as defined by ‘min_fit_length’, ‘max_fit_legth’</p>
-<p>‘d_fit_length’ , ‘min_fit_range’ and ‘d_fit_range’</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">find_gradient_of_corrected_signal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap_corr_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#find_gradient_of_corrected_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls conv3d to find the signal gradients.</p>
+<dt id="overlap_probe_eprofile.find_candidate_functions.check_monotonic">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">check_monotonic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ovp_fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#check_monotonic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.check_monotonic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks that the candidate corrected overlap functions are monotonicicaly increasing up
+to the range of full overlap. This check is performed by using a Savitzky–Golay
+filter (scipy.signal.savgol_filter) to find the running gradients of each function, and
+checking that they are near positive. The filter length is given by ‘sgolay_width’,
+and the filter order by ‘sgolay_ord’ - both defined in config. The minimum gradients
+within the fitting windows must not be less than ‘min_slope’ defined in config.</p>
+<p>The checks applied in this function are described in Appendix 9
+of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>3D array of floats</em>) – input signal</p></li>
-<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
+<li><p><strong>ovp_fc</strong> (<em>2D array</em>) – candidate corrected overlap functions</p></li>
+<li><p><strong>rng</strong> (<em>array</em>) – range array for CHM15k</p></li>
+<li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the fitting windows</p></li>
+<li><p><strong>config</strong> (<em>pandas data frame</em>) – thresholds and setting</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>val_min_slope</strong> (<em>array</em>) – minumum gradients of each candidate corrected overlap function</p></li>
+<li><p><strong>index_min_slope</strong> (<em>array</em>) – indexes of minumum gradients of each candidate corrected overlap function</p></li>
+<li><p><strong>condition3</strong> (<em>boolean array</em>) – results of check that min gradient is above ‘min_slope’, True for pass
+False for fail</p></li>
+</ul>
+</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>3D array of floats</p>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.find_candidate_functions.check_relative_error">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">check_relative_error</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#check_relative_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.check_relative_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls make_ovp_fc to create corrected overlap functions and then applies the checks
+described in Appendix 6 and 7 of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<p>The ratio of the maximum of each corrected overlap function to the max of the
+referenec overlap function must be less than ‘max_overlap_value’</p>
+<p>The max of relative error between the corrected overlap functions and the reference
+overlap function must be less than ‘thresh_overlap_valid_rel_error’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rcs_0</strong> (<em>2D array</em>) – range corrected signal within current time window</p></li>
+<li><p><strong>p</strong> (<em>array object</em>) – object returned by simple_linear_fit - slopes and intercepts of regressions
+returned by simple_linear_fit</p></li>
+<li><p><strong>ov</strong> (<em>array</em>) – reference overlap signal</p></li>
+<li><p><strong>rng</strong> (<em>array</em>) – range array for CHM15k</p></li>
+<li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the altitude windows</p></li>
+<li><p><strong>config</strong> (<em>pandas data frame</em>) – thresholds and setting</p></li>
+<li><p><strong>condition1</strong> (<em>boolean array</em>) – results of checks performed by check_fits</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>ovp_fc</strong> (<em>2D array</em>) – candidate corrected overlap functions</p></li>
+<li><p><strong>overlap_corr_factor</strong> (<em>2D array</em>) – array of overlap correction factors</p></li>
+<li><p><strong>valmax</strong> (<em>array</em>) – max of the relative error between the reference overlap function and the
+candidate corrected overlap functions</p></li>
+<li><p><strong>condition2</strong> (<em>boolean array</em>) – results of checks on the maximum values of the corrected overlap
+functions. True for pass and False for fail</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal" title="overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.find_gradient_of_corrected_signal</span></code></a></p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.make_ovp_fc</span></code></p>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.find_savgol_slope">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">find_savgol_slope</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ovp_fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#find_savgol_slope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.find_savgol_slope" title="Permalink to this definition">¶</a></dt>
+<dt id="overlap_probe_eprofile.find_candidate_functions.check_temporal_spatial_homogeneity">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">check_temporal_spatial_homogeneity</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap_corr_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#check_temporal_spatial_homogeneity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.check_temporal_spatial_homogeneity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls conv3d to find the spatio-temporal gradients of the corrected
+signal found using the candidate corrected overlap functions, and then checks
+the maximum and mean are less than ‘max_relgrad’ and  ‘max_relgrad_mean’ as
+defined in config.</p>
+<p>The checks applied in this function are described in Appendix 8
+of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rcs_0</strong> (<em>2D array</em>) – range corrected signal within current time window</p></li>
+<li><p><strong>rng</strong> (<em>array</em>) – range array for CHM15k</p></li>
+<li><p><strong>overlap_corr_factor</strong> (<em>2D array</em>) – array of overlap correction factors</p></li>
+<li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the altitude windows</p></li>
+<li><p><strong>max_available_fit_range</strong> (<em>float</em>) – maximum altitude at which all pre_checks were passed</p></li>
+<li><p><strong>condition1</strong> (<em>array of bools</em>) – profiles that have passed checks so far</p></li>
+<li><p><strong>config</strong> (<em>pandas data frame</em>) – thresholds and setting</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>relgradmagn</strong> (<em>3D array of floats</em>) – gradient of input signal along “direction””</p></li>
+<li><p><strong>relgrad_max</strong> (<em>3D array of floats</em>) – gradient of input signal along “direction””</p></li>
+<li><p><strong>relgrad_mean</strong> (<em>3D array of floats</em>) – gradient of input signal along “direction””</p></li>
+<li><p><strong>condition3</strong> (<em>3D array of floats</em>) – gradient of input signal along “direction””</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#overlap_probe_eprofile.overlap_utils.conv3d" title="overlap_probe_eprofile.overlap_utils.conv3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.overlap_utils.conv3d</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.find_candidate_functions.do_quality_checks">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">do_quality_checks</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rcs_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_available_fit_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#do_quality_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.do_quality_checks" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.make_mask">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">make_mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fit_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_begin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#make_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.make_mask" title="Permalink to this definition">¶</a></dt>
+<dt id="overlap_probe_eprofile.find_candidate_functions.get_regression_residuals">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">get_regression_residuals</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masked_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masked_signal_whole_zone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masked_rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masked_rng_whole_zone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#get_regression_residuals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.get_regression_residuals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the sum of the squares of the residuals and the max of the abs. values of the
+residuals between the regression line returned by simple_linear_fit and the mean log signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array object</em>) – object returned by simple_linear_fit - slopes and intercepts of regressions</p></li>
+<li><p><strong>masked_signal</strong> (<em>2D masked array</em>) – the repeated mean log signal for the current time window masked where values
+are outside the altitude windows defined by fit_begin and fit_length</p></li>
+<li><p><strong>masked_signal_whole_zone</strong> (<em>2D masked array</em>) – the repeated mean log signal for the current time window masked where values
+are outside the altitude windows defined by fit_begin and fit_length but
+extended downwards so all windows begin at ‘min_fit_range’</p></li>
+<li><p><strong>masked_rng</strong> (<em>2D array</em>) – the repeated range array masked to match masked_signal</p></li>
+<li><p><strong>masked_rng__whole_zone</strong> (<em>2D array</em>) – the repeated range array maked to match masked_signal_whole_zone</p></li>
+<li><p><strong>n</strong> (<em>array of int</em>) – total lengths of each unmasked windows in masked_signal</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>poly</strong> (<em>2D array</em>) – regression lines</p></li>
+<li><p><strong>resid</strong> (<em>array of floats</em>) – sum of the squares of the residuals between poly and data</p></li>
+<li><p><strong>resid_whole_zone</strong> (<em>array of floats</em>) – max of the absolute value of the residuals between poly and data</p></li>
+<li><p><strong>See also&#64;author martin osborne</strong> (<em>martin.osborne&#64;metoffice.gov.uk</em>)</p></li>
+<li><p><em>——–</em></p></li>
+<li><p><em>overlap_probe_eprofile.process_checks.simple_linear_fit</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.find_candidate_functions.make_mask">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">make_mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fit_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_begin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#make_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.make_mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes in arrays of ‘fit_length’ and ‘fit_begin’ that define the shiting
 altitude windows within which a linear regressesion is to be performed. These
 are worked up into a mask that can be applied to an array consisting of
@@ -749,27 +852,229 @@ a constant altitude bin.</p>
 <li><p><strong>fit_length</strong> (<em>1D array</em>) – number of altitude bins in each fitting window</p></li>
 <li><p><strong>fit_begin</strong> (<em>1D array</em>) – altitude bins to start each fitting window</p></li>
 <li><p><strong>rng</strong> (<em>1D array</em>) – altitude array</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
+<li><p><strong>and 'fit_begin'</strong> (<em>Returns'fit_length'</em>) – </p></li>
+<li><p><strong>-------</strong> – </p></li>
 <li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the altitude windows</p></li>
 <li><p><strong>bottom_mask</strong> (<em>2D array of bools</em>) – mask defining the lower bounds of the altitude windows</p></li>
 <li><p><strong>n</strong> (<em>1D array</em>) – total lengths of each unmasked window</p></li>
 </ul>
-</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.make_ovp_fc">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">make_ovp_fc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#make_ovp_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.make_ovp_fc" title="Permalink to this definition">¶</a></dt>
+<dt id="overlap_probe_eprofile.find_candidate_functions.make_ovp_fc">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.find_candidate_functions.</span></code><code class="sig-name descname"><span class="pre">make_ovp_fc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/find_candidate_functions.html#make_ovp_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.find_candidate_functions.make_ovp_fc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates candidate corrected overlap functions using Eqs. (2) and (9) of
+<a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a>.
+Also returns the maximum of the relative error between each candidate functions
+and the reference overlap function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>signal_all</strong> (<em>2D array</em>) – unmasked array of repeated mean log signal</p></li>
+<li><p><strong>p</strong> (<em>array object</em>) – object returned by simple_linear_fit - slopes and intercepts of regressions
+returned by simple_linear_fit</p></li>
+<li><p><strong>ov</strong> (<em>array</em>) – reference overlap signal</p></li>
+<li><p><strong>rng</strong> (<em>array</em>) – range array for CHM15k</p></li>
+<li><p><strong>top_mask</strong> (<em>2D array of bools</em>) – mask defining the upper bounds of the the altitude windows</p></li>
+<li><p><strong>config</strong> (<em>pandas data frame</em>) – thresholds and setting</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>overlap_corr_factor</strong> (<em>2D array</em>) – array of overlap correction factors</p></li>
+<li><p><strong>ovp_fc</strong> (<em>2D array</em>) – candidate corrected overlap functions</p></li>
+<li><p><strong>valmax</strong> (<em>array</em>) – max of the relative error between the reference overlap function and the
+candidate corrected overlap functions</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.check_relative_error</span></code></p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-overlap_probe_eprofile.final_selection">
+<span id="overlap-probe-eprofile-final-selection-module"></span><h2>overlap_probe_eprofile.final_selection module<a class="headerlink" href="#module-overlap_probe_eprofile.final_selection" title="Permalink to this headline">¶</a></h2>
+<p>This module contans functions to perform the checks and processing decribed in
+section 3 of the appendix of <a class="reference external" href="https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf">amt-9-2947-2016</a>
+titled “Final selection”</p>
+<p>This is a translation / refactoring of Matlab code written by Maxime Hervo,
+Yann Poltera, Rolf Ruefenacht and Melania Van Hove.</p>
+<p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.check_rel_grad_magn">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">check_rel_grad_magn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max26</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov_fcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deep_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#check_rel_grad_magn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.check_rel_grad_magn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="overlap_probe_eprofile.process_checks.simple_linear_fit">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.process_checks.</span></code><code class="sig-name descname"><span class="pre">simple_linear_fit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/process_checks.html#simple_linear_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.process_checks.simple_linear_fit" title="Permalink to this definition">¶</a></dt>
+<dt id="overlap_probe_eprofile.final_selection.check_variance">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">check_variance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov_fcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#check_variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.check_variance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.do_sort_checks">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">do_sort_checks</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#do_sort_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.do_sort_checks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.get_ov_ok_info_df">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">get_ov_ok_info_df</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#get_ov_ok_info_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.get_ov_ok_info_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in a dictionary of results, loops through and constructs lists of
+time intervals containing good samples, and corresponding lists of upper
+and lower range limits and overlap functions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.make_deep_signal">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">make_deep_signal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RCSc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#make_deep_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.make_deep_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the RCS already truncated to altitude fitting window</p>
+<p>and pulls out time windows corresponding to ‘times’ and</p>
+<p>stacks them into third dimension. Returns array of dimension</p>
+<p>( time_interval_length , altitude_window , number_of_time_intervals )</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.make_variance_windows">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">make_variance_windows</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#make_variance_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.make_variance_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the RCS already truncated to altitude fitting window</p>
+<p>and pulls out time windows corresponding to ‘times’ and</p>
+<p>stacks them into third dimension. Returns array of dimension</p>
+<p>( time_interval_length , altitude_window , number_of_time_intervals )</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.remove_failed">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">remove_failed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passed_inds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#remove_failed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.remove_failed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.remove_outliers">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">remove_outliers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ovs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#remove_outliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.remove_outliers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.final_selection.stdomean">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.final_selection.</span></code><code class="sig-name descname"><span class="pre">stdomean</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliding_window_inds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deep_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denomenator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/final_selection.html#stdomean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.final_selection.stdomean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-overlap_probe_eprofile.overlap_utils">
+<span id="overlap-probe-eprofile-overlap-utils-module"></span><h2>overlap_probe_eprofile.overlap_utils module<a class="headerlink" href="#module-overlap_probe_eprofile.overlap_utils" title="Permalink to this headline">¶</a></h2>
+<p>Utility functions called in by other modules</p>
+<p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
+<dl class="py function">
+<dt id="overlap_probe_eprofile.overlap_utils.conv2d">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.overlap_utils.</span></code><code class="sig-name descname"><span class="pre">conv2d</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/overlap_utils.html#conv2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.overlap_utils.conv2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds signal gradient along the stated direction using convolution with a
+Sobel operator. Matlab’s conv2 and Python’s scipy.signal.convolve2d behave
+slightly differently. This function reproduces the behaviour of the Matlab
+function. Used in ‘check_grads’ to match the Matlab code results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>2D array of floats</em>) – input signal</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D array of floats</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.pre_checks.check_grads</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.overlap_utils.conv3d">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.overlap_utils.</span></code><code class="sig-name descname"><span class="pre">conv3d</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/overlap_utils.html#conv3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.overlap_utils.conv3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the signal gradient along a stated direction for each layer of a 3D
+array using convolution with a Sobel operator. Matlab’s convolve and Python’s
+scipy.signal.convolve behave slightly differently. This function reproduces
+the behaviour of the Matlab function. Called by ‘check_temporal_spatial_homogeneity’
+to match the Matlab code results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>3D array of floats</em>) – input signal</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – direction in which grdient is to be calculated. ‘x’ or ‘y’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>gradient</strong> – gradient of input signal along “direction””</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>3D array of floats</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.check_temporal_spatial_homogeneity</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.overlap_utils.create_results_df">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.overlap_utils.</span></code><code class="sig-name descname"><span class="pre">create_results_df</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resid_whole_zone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ovp_fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relgrad_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relgrad_mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_min_slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_min_slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditionals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/overlap_utils.html#create_results_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.overlap_utils.create_results_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>writes the results of quality checks to a Pandas dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rng</strong> – </p></li>
+<li><p><strong>p</strong> – </p></li>
+<li><p><strong>poly</strong> – </p></li>
+<li><p><strong>resid</strong> – </p></li>
+<li><p><strong>resid_whole_zone</strong> – </p></li>
+<li><p><strong>ov</strong> – </p></li>
+<li><p><strong>ovp_fc</strong> – </p></li>
+<li><p><strong>val_max</strong> – </p></li>
+<li><p><strong>relgrad_max</strong> – </p></li>
+<li><p><strong>relgrad_mean</strong> – </p></li>
+<li><p><strong>val_min_slope</strong> – </p></li>
+<li><p><strong>index_min_slope</strong> – </p></li>
+<li><p><strong>top_mask</strong> – </p></li>
+<li><p><strong>bottom_mask</strong> – </p></li>
+<li><p><strong>internal_temperature</strong> – </p></li>
+<li><p><strong>conditionals</strong> – </p></li>
+<li><p><strong>config</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>results_for_this_interval</strong> – results of checks for the current time interval, including corrected
+overlap functions</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Pandas dataframe</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap_probe_eprofile.process_checks.check_temporal_spatial_homogeneity</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.overlap_utils.prctile">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.overlap_utils.</span></code><code class="sig-name descname"><span class="pre">prctile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/overlap_utils.html#prctile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.overlap_utils.prctile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.overlap_utils.quantile">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.overlap_utils.</span></code><code class="sig-name descname"><span class="pre">quantile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/overlap_utils.html#quantile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.overlap_utils.quantile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="overlap_probe_eprofile.overlap_utils.simple_linear_fit">
+<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.overlap_utils.</span></code><code class="sig-name descname"><span class="pre">simple_linear_fit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/overlap_utils.html#simple_linear_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.overlap_utils.simple_linear_fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the intercepts (alphas) and slopes (betas) of a simple linear fit
 to the unmasked values in each column of masked array y.</p>
 <dl class="field-list simple">
@@ -789,80 +1094,6 @@ to the unmasked values in each column of masked array y.</p>
 </dd>
 </dl>
 </dd></dl>
-
-</div>
-<div class="section" id="module-overlap_probe_eprofile.sort_samples">
-<span id="overlap-probe-eprofile-sort-samples-module"></span><h2>overlap_probe_eprofile.sort_samples module<a class="headerlink" href="#module-overlap_probe_eprofile.sort_samples" title="Permalink to this headline">¶</a></h2>
-<p>functions to perform processing and checks on ceilometer data to be used</p>
-<p>in calculating an overlap function.  This is a translation /</p>
-<p>refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht</p>
-<p>and Melania Van Hove.</p>
-<p>&#64;author martin osborne: <a class="reference external" href="mailto:martin&#46;osborne&#37;&#52;&#48;metoffice&#46;gov&#46;uk">martin<span>&#46;</span>osborne<span>&#64;</span>metoffice<span>&#46;</span>gov<span>&#46;</span>uk</a></p>
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.check_rel_grad_magn">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">check_rel_grad_magn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max26</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov_fcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deep_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#check_rel_grad_magn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.check_rel_grad_magn" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.check_variance">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">check_variance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov_fcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#check_variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.check_variance" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.do_sort_checks">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">do_sort_checks</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#do_sort_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.do_sort_checks" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.get_ov_ok_info_df">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">get_ov_ok_info_df</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#get_ov_ok_info_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.get_ov_ok_info_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes in a dictionary of results from process checks, loops through and</p>
-<p>constructs lists of time intervals containing good samples, and corresponding</p>
-<p>lists of upper and lower range limits and overlap functions.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.make_deep_signal">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">make_deep_signal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RCSc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#make_deep_signal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.make_deep_signal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes the RCS already truncated to altitude fitting window</p>
-<p>and pulls out time windows corresponding to ‘times’ and</p>
-<p>stacks them into third dimension. Returns array of dimension</p>
-<p>( time_interval_length , altitude_window , number_of_time_intervals )</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.make_variance_windows">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">make_variance_windows</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#make_variance_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.make_variance_windows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes the RCS already truncated to altitude fitting window</p>
-<p>and pulls out time windows corresponding to ‘times’ and</p>
-<p>stacks them into third dimension. Returns array of dimension</p>
-<p>( time_interval_length , altitude_window , number_of_time_intervals )</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.prctile">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">prctile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#prctile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.prctile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.quantile">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">quantile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#quantile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.quantile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.remove_failed">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">remove_failed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passed_inds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#remove_failed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.remove_failed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.remove_outliers">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">remove_outliers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ovs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#remove_outliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.remove_outliers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="overlap_probe_eprofile.sort_samples.stdomean">
-<code class="sig-prename descclassname"><span class="pre">overlap_probe_eprofile.sort_samples.</span></code><code class="sig-name descname"><span class="pre">stdomean</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliding_window_inds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deep_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denomenator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ov_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overlap_probe_eprofile/sort_samples.html#stdomean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overlap_probe_eprofile.sort_samples.stdomean" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 <div class="section" id="module-overlap_probe_eprofile.version">

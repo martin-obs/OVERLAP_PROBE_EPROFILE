@@ -1,42 +1,33 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-'''
+"""This module contans functions to perform the checks and processing decribed in 
+section 3 of the appendix of `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
+titled "Final selection"  
 
-functions to perform processing and checks on ceilometer data to be used
-
-in calculating an overlap function.  This is a translation /
-
-refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht 
-
-and Melania Van Hove.
+This is a translation / refactoring of Matlab code written by Maxime Hervo, 
+Yann Poltera, Rolf Ruefenacht and Melania Van Hove.
 
 @author martin osborne: martin.osborne@metoffice.gov.uk
 
-'''
+"""
 
 import numpy as np
 import datetime
 import gc
 
-from overlap_probe_eprofile.process_checks import conv3d
+from overlap_probe_eprofile.overlap_utils import conv3d, prctile
 
 
 def get_ov_ok_info_df ( A_dict , rng ) :
     
-    '''
+    """Takes in a dictionary of results, loops through and constructs lists of 
+    time intervals containing good samples, and corresponding lists of upper 
+    and lower range limits and overlap functions. 
     
-    Takes in a dictionary of results from process checks, loops through and 
-    
-    constructs lists of time intervals containing good samples, and corresponding 
-    
-    lists of upper and lower range limits and overlap functions. 
-    
-    '''
-        
+    """ 
+       
     time_intervals  = [ np.repeat ( key , np.shape (  A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True ] ) [ 0 ] )  for key in A_dict.keys ( ) if  bool ( any (A_dict [ key ] ['data_frame'] ['pass_all'] ) ) ] 
-        
-    #print (time_intervals)
     
     time_intervals = [ item for sublist in time_intervals for item in sublist ]
      
@@ -63,12 +54,6 @@ def get_ov_ok_info_df ( A_dict , rng ) :
     upper = [ list ( A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True][ 'rng_end'] ) for key in ts ]
     
     max_rng_for_interval = [ item for sublist in [ np.repeat( np.max ( r ) , len ( r ) ) for r in upper ] for item in sublist ]
-    
-    #print (len(ts))
-    
-    print (len(ov_fcs) , len(temperatures))
-    
-    #print (len(max_rng_for_interval))
          
     return time_ints , times , lower , upper , max_rng_for_interval , ov_fcs , temperatures
 
@@ -137,41 +122,7 @@ def make_variance_windows ( dt , times , config ) :
     return sliding_inds
 
 
-def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
-    
-    time_intervals , times , lower , upper , max_rng , ov_fcs , temperatures = get_ov_ok_info_df ( results_dict , rng  )
-    
-    max26 = [ np.max ( r )  for r in upper ]
-    
-    if np.shape ( ov_fcs ) [ 0 ] == 0 :
-        
-        return False
-    
-    if np.shape ( ov_fcs ) [ 0 ] <= config [ 'min_nb_samples_for_skipping_good_test' ].values [ 0 ] :
-      
-        RCSc = rcs * ov 
-           
-        range_index = ( rng >= config [ 'min_range_std_over_mean' ].values [ 0 ] ) * ( rng <= np.max ( max_rng ) )
-        
-        RCSc = RCSc [ : , range_index ]
-        
-        rng = rng [ range_index ]
-        
-        ov_fcs = np.asarray(ov_fcs) [ : , range_index ]     
-           
-        deep_signal = make_deep_signal ( dt , times , RCSc )
-        
-        condition1 = check_variance (  deep_signal  , ov_fcs , times , dt  , config )
-        
-        condition2 = check_rel_grad_magn ( rng  , max26 , ov_fcs  , times , deep_signal , config )
-        
-        print ('After good tests = ' , sum(condition1*condition2))
-          
-        return condition1 * condition2
-    
-    else:
-        
-        return np.ones( np.shape ( ov_fcs ) [ 0 ] ).astype(bool)
+
     
       
 def check_rel_grad_magn ( rng  , max26, ov_fcs , times , deep_signal , config ):
@@ -267,9 +218,48 @@ def stdomean (sliding_window_inds , deep_signal , denomenator , ov_shape ,  time
                     
     return variance    
 
+
+def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
+    
+    time_intervals , times , lower , upper , max_rng , ov_fcs , temperatures = get_ov_ok_info_df ( results_dict , rng  )
+    
+    print ('No. of corrected overlap functions before final selection = ' , len ( ov_fcs ) )
+    
+    max26 = [ np.max ( r )  for r in upper ]
+    
+    if np.shape ( ov_fcs ) [ 0 ] == 0 :
+        
+        return False
+    
+    if np.shape ( ov_fcs ) [ 0 ] <= config [ 'min_nb_samples_for_skipping_good_test' ].values [ 0 ] :
+      
+        RCSc = rcs * ov 
+           
+        range_index = ( rng >= config [ 'min_range_std_over_mean' ].values [ 0 ] ) * ( rng <= np.max ( max_rng ) )
+        
+        RCSc = RCSc [ : , range_index ]
+        
+        rng = rng [ range_index ]
+        
+        ov_fcs = np.asarray(ov_fcs) [ : , range_index ]     
+           
+        deep_signal = make_deep_signal ( dt , times , RCSc )
+        
+        condition1 = check_variance (  deep_signal  , ov_fcs , times , dt  , config )
+        
+        condition2 = check_rel_grad_magn ( rng  , max26 , ov_fcs  , times , deep_signal , config )
+        
+        print ('No. of corrected overlap functions after good tests = ' , sum ( condition1 * condition2 ) )
+          
+        return condition1 * condition2
+    
+    else:
+        
+        return np.ones( np.shape ( ov_fcs ) [ 0 ] ).astype(bool)
+    
+
 def remove_failed ( results_dict , passed_inds , rng  , config ) :
-    
-    
+       
     passed_inds = passed_inds
     
     ovs = np.zeros ( len ( rng ) )
@@ -326,7 +316,6 @@ def remove_outliers (  ovs , rng , config ) :
     pc_75 = np.asarray (  pc_75 )
     pc_50 = np.asarray (  pc_50 )   
    
-
     outliers_plus = pc_50 + whiskers*(pc_75-pc_25)
             
     outliers_minus = pc_50 - whiskers*(pc_75-pc_25)
@@ -347,21 +336,11 @@ def remove_outliers (  ovs , rng , config ) :
             
             outlier_pass_inds.append ( False )
             
-    print ('after outlier removal = ' , np.shape(ov_final[1:,:]))
+    print ('No. of corrected overlap functions after outlier removal = ' , np.shape(ov_final[1:,:])[0])
     
     return ov_final [ 1 : , : ] , np.nanmean ( ov_final , axis = 0 ) , outlier_pass_inds
         
 
-def quantile ( x , q ) :
-    
-    n = len(x)
-    
-    y = np.sort(x)
-    
-    return ( np.interp ( q , np.linspace ( 1 / ( 2 * n ) , ( 2 * n - 1 ) / ( 2 * n ), n ), y ) )
-
-def prctile ( x , p ) :
-      
-    return ( quantile ( x ,  p  / 100 ) )   
+ 
       
     

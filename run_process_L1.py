@@ -1,14 +1,15 @@
+import importlib
 import overlap_probe_eprofile.process_L1 as pro
 import os
 import numpy as np
 import time
 import traceback
 
+importlib.reload(pro)
+
 base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10393/2021/' #your L1 directory here
 
-
-
-base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10393/2021/'
+base_path = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2022/'
 
 # = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2021/'
 
@@ -20,21 +21,21 @@ config = 'config.txt' # your config file here
 
 months_to_pro = np.sort ( os.listdir ( base_path ) )
 
-print ( months_to_pro )
+#print ('months to pro = ' ,  months_to_pro )
 
 total_start_time = time.time ( )
 
-for m in  months_to_pro [ 1: 2 ] :
+for m in  months_to_pro [ 1 : 2 ] :
     
     file_names =  os.listdir ( base_path + m )
     
     files_to_pro = np.sort (  [ base_path + m + '/' + f for  f in file_names ] )
     
-    print ( files_to_pro )
+    #print ('files to pro = ' ,  files_to_pro )
     
-    for f in files_to_pro [18 :19 ]  :
+    for f in files_to_pro [ 20 :28 ]  :
                 
-        print ('working on ' , f [ -11 : -3 ] )
+        print ('Working on ' , f [ -11 : -3 ] )
                     
         start_time = time.time()
         
@@ -60,9 +61,9 @@ for m in  months_to_pro [ 1: 2 ] :
             
             pass
 
-        print ("--- %s seconds ---" % ( time.time ( ) - start_time ) )
+        print ("--- %s Seconds for this date ---" % ( time.time ( ) - start_time ) )
              
-print ("--- %s Total for year seconds ---" % ( time.time ( ) - total_start_time ) )
+print ("--- %s Total for time period requested seconds ---" % ( time.time ( ) - total_start_time ) )
 
 
 

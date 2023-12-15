@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-"""This module contains functions to perform pre-checks on CHM15k ceilometer data 
-before it is used in calculating corrected overlap functions.  This is a translation 
-/ refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
+"""This module contans functions to perform the checks and processing decribed in 
+section 1 of the appendix of `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
+titled "Determination of the fitting intervals"
+
+This is a translation / refactoring of Matlab code written by Maxime Hervo, Yann Poltera,
+Rolf Ruefenacht and Melania Van Hove.
 
     @author martin osborne: martin.osborne@metoffice.gov.uk
 """
 
 import numpy as np
 import datetime
-import scipy.signal as ss
+from overlap_probe_eprofile.overlap_utils import conv2d
 
 def at_least_one_profile ( flag ) :
 
-    """Check there is at least one profile within the current time window
+    """Part 1 of the checks described in section 1 of the appendix of 
+    `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
+    Check there is at least one profile within the current time window. 
     
     Parameters
     ----------
@@ -40,7 +45,10 @@ def at_least_one_profile ( flag ) :
 
 def all_clear_sky ( check , sci ) :
 
-    """Check all profiles in current time window come with a clear sky condition
+    """Part 2 of the checks described in section 1 of the appendix of 
+    `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
+    
+    Check all profiles in current time window come with a clear sky condition. 
     
     Parameters
     ----------
@@ -74,7 +82,8 @@ def all_clear_sky ( check , sci ) :
 
 def enough_clear_range_cbi ( check ,  cbi , config ) :
 
-    '''
+    """Checks described in section 2 of the appendix of 
+    `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
 
     Checks that the minimum cloud base height within the current time window leaves 
     enough range bins below it to allow for a large enough fitting window 
@@ -102,7 +111,7 @@ def enough_clear_range_cbi ( check ,  cbi , config ) :
     --------
     overlap_probe_eprofile.pre_checks.all_clear_sky
 
-    '''
+    """
 
     if check:
 
@@ -125,9 +134,11 @@ def enough_clear_range_cbi ( check ,  cbi , config ) :
         return False , 0
 
 def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_range ) :
+    
+    """Checks described in section 3.1.1 of the appendix of 
+    `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
 
-
-    """Calculates the variance for a subset of profiles within the current time window and 
+    Calculates the variance for a subset of profiles within the current time window and 
     within a defined altitude range. The subset is defined by 'dt_sliding_variance'
     in config, and is that number of profiles wide. The subset is moved by one profile until 
     the end of the curent time widow is reached. The altitude range is defined by 
@@ -136,6 +147,8 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
     config, is returned. This is the new 'max_available_fit_range'. If this leaves enough bins 
     in the available fitting window (defined by 'min_fit_range' + 'min_fit_length' in config) 
     then the test is passed.
+    
+
     
     Parameters
     ----------
@@ -218,51 +231,21 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
         return False , max_available_fit_range , 0.0
 
 
-def conv2 ( x , direction = None ) :
 
-    """Finds signal gradient along the stated direction using convolution. 
-    Matlab's conv2 and Python's scipy.signal.convolve2d behave slightly differently. 
-    This function reproduces the behaviour of the Matlab function. Used in 
-    'check_grads' to match the Matlab code results.
-    
-    Parameters
-    ----------
-    
-    x : 2D array of floats
-        input signal 
-    direction : str
-        direction in which grdient is to be calculated. 'x' or 'y'
-    
-    Returns
-    -------
-    gradient : 2D array of floats
-        gradient of input signal along "direction""
-        
-    See also
-    --------
-    overlap_probe_eprofile.pre_checks.check_grads
-    
-
-    """
-    
-    if direction == 'y' :
-        
-        grad = np.asarray ( [ 1 , 0 , -1 , 2 , 0 , -2 , 1 , 0 , -1 ] ).reshape ( ( 3 , 3 ) )
-        
-    elif direction == 'x' :
-
-        grad = np.asarray ( [ 1 , 2 , 1 , 0 , 0 , 0 , -1 , -2 , -1 ] ).reshape ( ( 3 , 3 ) )
-
-    return np.rot90 ( ss.convolve2d ( np.rot90 ( x , 2 ) , np.rot90 ( grad , 2 ) , mode = 'same' ) , 2 )
 
 
 def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
+    
+    """Checks described in section 3.1.2, 3.2 and 3.4 of the appendix of 
+    `amt-9-2947-2016 <https://amt.copernicus.org/articles/9/2947/2016/amt-9-2947-2016.pdf>`_
 
-    """Calls conv2 to find the range bin at which the relative gradients of log10 ( rcs_0 ) along 
+    Calls conv2d to find the range bin at which the relative gradients of log10 ( rcs_0 ) along 
     the altitude and time directions are below 'max_relgrad' and checks that this leaves 
     enough bins in the fitting window. Also find the highest range bin where the 
     max and mean of the magnitide of the relative gradients from 'first_range_gradY' 
     are less than 'max_relgrad' and 'max_relgrad_mean'
+    
+
     
     Parameters
     ----------
@@ -310,9 +293,9 @@ def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
         lRCS = np.log10 ( abs ( rcs_0 [ : , min_r : max_r ] ) )
 
-        gradY = conv2 ( lRCS , direction =  'y' )
+        gradY = conv2d ( lRCS , direction =  'y' )
 
-        gradX = conv2 ( lRCS, direction = 'x' )
+        gradX = conv2d ( lRCS, direction = 'x' )
 
         relgradY = abs ( gradY ) / abs (lRCS)
 
