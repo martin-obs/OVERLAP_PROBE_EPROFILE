@@ -12,14 +12,6 @@ overlap\_probe\_eprofile.build\_temp\_model module
    :undoc-members:
    :show-inheritance:
 
-overlap\_probe\_eprofile.ceilo\_plotter module
-----------------------------------------------
-
-.. automodule:: overlap_probe_eprofile.ceilo_plotter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 overlap\_probe\_eprofile.find\_fitting\_windows module
 ------------------------------------------------------
 
@@ -64,14 +56,6 @@ overlap\_probe\_eprofile.version module
 ---------------------------------------
 
 .. automodule:: overlap_probe_eprofile.version
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-overlap\_probe\_eprofile.write\_to\_netcdf module
--------------------------------------------------
-
-.. automodule:: overlap_probe_eprofile.write_to_netcdf
    :members:
    :undoc-members:
    :show-inheritance:
