@@ -1,45 +1,45 @@
-import importlib
 import overlap_probe_eprofile.process_L1 as pro
 import os
+import sys
 import numpy as np
 import time
 import traceback
 
-importlib.reload(pro)
 
-base_path = '/scratch/mosborne/L1_for_overlap/0-20000-0-10393/2021/' #your L1 directory here
+base_path = sys.argv[1]
+print ( f"====== Processing : {base_path} ======= " ) 
 
-base_path = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2022/'
+save_path = sys.argv[2]
 
-# = '/scratch/mosborne/L1_for_overlap/0-20008-0-UGR/2021/'
+ov_ref = sys.argv[3] #'/home/pay/users/rem/test_overlap_python_melania/version_for_implementation/OVERLAP_PROBE_EPROFILE-master/TUB120011_20121112_1024.cfg' #your reference ov function here
 
-save_path = '/scratch/mosborne/overlap_results/' #your output directory here - a subdirectory with site location name will be created
-
-ov_ref = 'TUB120011_20121112_1024.cfg' #your reference ov function here
-
-config = 'config.txt' # your config file here
+config = sys.argv[4] #'/home/pay/users/rem/test_overlap_python_melania/version_for_implementation/OVERLAP_PROBE_EPROFILE-master/config.txt' # your config file here
 
 months_to_pro = np.sort ( os.listdir ( base_path ) )
 
-#print ('months to pro = ' ,  months_to_pro )
+#months_to_pro = ["07"]
+
+print ( months_to_pro )
 
 total_start_time = time.time ( )
 
-for m in  months_to_pro [ 1 : 2 ] :
+for m in  months_to_pro [ : ] :
     
     file_names =  os.listdir ( base_path + m )
     
-    files_to_pro = np.sort (  [ base_path + m + '/' + f for  f in file_names ] )
+    files_to_pro = np.sort (  [ base_path + m + '/' + f for f in file_names ] )
     
-    #print ('files to pro = ' ,  files_to_pro )
+    #print ( files_to_pro ) 
     
-    for f in files_to_pro [ 20 :28 ]  :
+    for f in files_to_pro [ : ]  :
+    
+        print ( f ) 
                 
-        print ('Working on ' , f [ -11 : -3 ] )
+        print ('working on ' , f [ -11 : -3 ] )
                     
         start_time = time.time()
         
-        try :            
+        try :      
             
             L1 = pro.Eprofile_Reader ( f )
             
@@ -61,9 +61,9 @@ for m in  months_to_pro [ 1 : 2 ] :
             
             pass
 
-        print ("--- %s Seconds for this date ---" % ( time.time ( ) - start_time ) )
+        print ("--- %s seconds ---" % ( time.time ( ) - start_time ) )
              
-print ("--- %s Total for time period requested seconds ---" % ( time.time ( ) - total_start_time ) )
+print ("--- %s Total for year seconds ---" % ( time.time ( ) - total_start_time ) )
 
 
 
