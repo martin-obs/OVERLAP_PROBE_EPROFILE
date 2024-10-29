@@ -20,6 +20,7 @@ import pandas as pd
 from collections import Counter
 import os
 import sys
+import re
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import more_itertools as mit
@@ -56,8 +57,30 @@ class Temperature_model_builder ( object ) :
             class object containing temperature model and associated variables
 
         '''
+        # mvh
 
-        self.all_available_files = [ f for f in np.sort ( os.listdir ( path_to_csvs ) ) if os.path.isfile ( path_to_csvs + f )  ]
+        #self.all_available_files = [ f for f in np.sort ( os.listdir ( path_to_csvs ) ) if os.path.isfile ( path_to_csvs + f )  ] # might cause issues in case of LOM change
+        
+        self.all_available_files_temp = [ f for f in np.sort ( os.listdir ( path_to_csvs ) ) if os.path.isfile ( path_to_csvs + f )  ]
+
+        # Extraction of the dates from filenames
+        pattern = r"\d{4}-\d{2}-\d{2}.csv"
+
+        def sort_by_date(file_name):
+
+            match = re.search(pattern, file_name)
+
+            if match:
+
+                return match.group()
+            
+            else:
+
+                return "" 
+
+        self.all_available_files = sorted(self.all_available_files_temp, key=sort_by_date)   
+
+        # mvh     
         
         self.dt_start = datetime.datetime.strptime ( date_start , '%Y/%m/%d' ).date ( )
         
@@ -115,7 +138,7 @@ class Temperature_model_builder ( object ) :
         
         if number_avaialble > 0 :
             
-            print ( number_avaialble , ' overlap files available for chosen dates' )
+            print ( number_avaialble , ' overlap files available for chosen dates and optical module id' )
             
             self.start_ind = start_dt_ind
             
@@ -150,7 +173,15 @@ class Temperature_model_builder ( object ) :
         
     def check_optical_module ( self ) :
 
-        op_mods =  [ d.split ( '_' ) [ 3 ] for d in self.available_files ] 
+        # --- mvh 
+
+        # op_mods =  [ d.split ( '_' ) [ 3 ] for d in self.available_files ] 
+
+        op_mods =  [ d.split ( '_' ) [ -2 ] for d in self.available_files ] 
+
+        self.op_mods = op_mods[-1]
+        
+        # --- mvh
         
         self.op_mods_list = list ( Counter ( op_mods ).keys ( ) )
         
@@ -158,6 +189,39 @@ class Temperature_model_builder ( object ) :
         
         print ( 'containing ' ,  len ( self.op_mods_list ) , ' optical module(s) ' , self.op_mods_list ,', a temperature model will be made for each optical module')
         
+    
+    # --- mvh
+
+    def select_dates_for_op_mods ( self ) :
+
+        print ( " Creating model for optical module id : ",  self.op_mods) 
+
+        for i in range(len(self.available_files) -1, -1, -1) :
+            
+            tub = self.available_files[i][-24:-15]  
+
+            tub_before = self.available_files[i-1][-24:-15]
+
+            if tub != tub_before :
+                
+                print (f'a difference is found between tub {tub} and {tub_before} at iteration {i}')
+                
+                break
+
+
+        self.start_ind = i
+        
+        self.available_files = self.available_files [ self.start_ind : ]
+        
+        self.available_dts = self.all_available_dts [ self.start_ind : ]
+
+        number_avaialble = len ( self.available_files )
+
+        print (number_avaialble, " available files for this laser optical module : ")
+
+    # --- mvh
+
+
         
     def check_resolution_n_get_range ( self ) :
 
@@ -166,8 +230,18 @@ class Temperature_model_builder ( object ) :
        if np.diff ( self.rng_res ).any ( ) :
            
            self.rng_res_change_ind = np.where ( np.diff ( self.rng_res ) !=  0 )
+
+           # --- mvh
            
-           date_changes = [ d [ -14 :-4 ] for d in self.available_files [ self.rng_res_change_ind ] [ 0 ] [ 0 ] ] 
+           #date_changes = [ d [ -14 :-4 ] for d in self.available_files [ [ self.rng_res_change_ind ] [ 0 ] [ 0 ] ] ]   
+           
+           date_changes = []
+           
+           for el in list ( self.rng_res_change_ind [ 0 ] ) :
+           
+               date_changes.append ( self.available_files [ el ] [ -14 :-4 ] ) 
+           
+           # --- mvh
            
            print ('Range resoloution changes on date(s) ' , *date_changes , sep = ', ' )
            
@@ -245,7 +319,7 @@ class Temperature_model_builder ( object ) :
             
             rng_this_file = np.asarray ( df.columns.tolist() [ 6 : ] , dtype = 'float')
             
-            ov = np.intep ( self.rng , rng_this_file , ov )
+            ov = np.interp ( self.rng , rng_this_file , ov )
              
         return ov , t
         
@@ -370,8 +444,14 @@ class Temperature_model_builder ( object ) :
          
          
     def _remove_abberant_regression_results ( self ) :
+
+        # --- mvh
                 
-        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 90 ) )
+        # abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 90 ) )
+
+        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 200 ) )
+
+        # --- mvh
         
         if any ( abberations [ 0 ] ) : 
         
@@ -382,16 +462,24 @@ class Temperature_model_builder ( object ) :
             self.beta_2 [ : abberation_ind + 1 ] = 0
         
     def _check_for_artefacts ( self ) :
+
+        # --- mvh
         
-        grad_a_filtered = np.diff ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] )
+        # grad_a_filtered = np.diff ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] )
     
-        if not any ( grad_a_filtered < -0.7 ) and not any ( grad_a_filtered > 0.7 )  :
+        # if not any ( grad_a_filtered < -0.7 ) and not any ( grad_a_filtered > 0.7 )  :
+
+        if not any ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] == 0 ):
     
             self.artefact = False
             
         else :
             
-            print ( 'Warning: artfifact detected with R2 method, trying with artifact progressive quality control' )
+            # print ( 'Warning: artfifact detected with R2 method, trying with artifact progressive quality control' )
+
+            print ( 'Warning: abberant coefficients, applying daily progressive quality control' )
+
+        # --- mvh
                         
     def do_regression_2 ( self ) :
             
@@ -410,8 +498,14 @@ class Temperature_model_builder ( object ) :
             self.end_ind = len ( self.A_2 ) 
             
         else:
+
+            # --- mvh
             
-            print ( 'Warning: not enough stable points so trying with artifact progressive detection' )  
+            # print ( 'Warning: not enough stable points so trying with artifact progressive detection' )  
+            
+            print ( 'Warning: not enough data, artifact progressive detection' )
+
+            # --- mvh
         
         while self.artefact :
             

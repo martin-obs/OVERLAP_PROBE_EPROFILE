@@ -22,9 +22,11 @@ TM = btm.Temperature_model_builder ( '2021/01/01' , '2021/08/14' , ref_ov ,  pat
 
 TM.check_dates_available ( )
 
-TM.get_meta_data_from_first_file ( )
-
 TM.check_optical_module ( )
+
+TM.select_dates_for_op_mods ( ) 
+
+TM.get_meta_data_from_first_file ( )
 
 TM.check_resolution_n_get_range ( )
 
