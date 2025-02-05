@@ -282,19 +282,33 @@ def write_temp_model_to_netcdf ( path_for_results , obj ) :
     
     opt_mod =  obj.opt_mod_number
     
+    serlom = obj.opt_mod_number #mvh
+    
     rng_res = str ( obj.rng_res [ 0 ] )
     
-    nc_name = 'Overlap_correction_model_' + site + '_' + opt_mod + '.nc'
+    nc_name = 'Overlap_correction_model_' + site + '_' + opt_mod + '_' + obj.instrument_id + '.nc' #mvh
        
     if not os.path.exists( path_for_results ) :
         
         os.mkdir ( path_for_results )
     
-    elif os.path.isfile ( path_for_results + nc_name ) :  
+    #elif os.path.isfile ( path_for_results + nc_name ) :   #mvh
         
-        os.remove ( path_for_results + nc_name )
+    #    os.remove ( path_for_results + nc_name ) #mvh
+    
+    complete_path = path_for_results + obj.wigos_station_id + '/'  
+    
+    if not os.path.exists( complete_path ) :
+        
+        os.mkdir ( complete_path )
+    
+    elif os.path.isfile ( complete_path + nc_name ) :  
+        
+        os.remove ( complete_path + nc_name )
                   
-    ncfile = nc.Dataset ( path_for_results + nc_name , mode='w' , format = 'NETCDF4_CLASSIC' ) 
+    #ncfile = nc.Dataset ( path_for_results + nc_name , mode='w' , format = 'NETCDF4_CLASSIC' )  #mvh
+    
+    ncfile = nc.Dataset ( complete_path + nc_name , mode='w' , format = 'NETCDF4_CLASSIC' ) #mvh
    
     ncfile.site_location = obj.site_location
 
@@ -306,7 +320,11 @@ def write_temp_model_to_netcdf ( path_for_results , obj ) :
     
     ncfile.available_time_range_when_model_created = 'From ' + obj.all_available_dates [ 0 ] + ' to ' + obj.all_available_dates [ -1 ]
     
-    ncfile.Days_selected_for_model_creation = 'From ' + datetime.datetime.strftime ( obj.available_dts [ 0 ] , '%Y-%m-%d' ) + ' to ' + datetime.datetime.strftime ( obj.available_dts [ -1 ] , '%Y-%m-%d'  )
+    #ncfile.Days_selected_for_model_creation = 'From ' + datetime.datetime.strftime ( obj.available_dts [ 0 ] , '%Y-%m-%d' ) + ' to ' + datetime.datetime.strftime ( obj.available_dts [ -1 ] , '%Y-%m-%d'  ) #mvh
+    
+    #ncfile.Days_selected_for_model_creation = 'From ' + datetime.datetime.strftime ( obj.available_dts [ 0 ] , '%Y-%m-%d' ) + ' to ' + datetime.datetime.strftime ( obj.available_dts [ -1 ] , '%Y-%m-%d'  )
+
+    ncfile.Days_selected = f"{[ datetime.datetime.strftime ( obj.available_dts [ i ] , '%Y-%m-%d' ) for i in range ( len ( obj.available_dts ) ) ]}"
     
     ncfile.number_of_days_selected = len ( obj.relative_difference )
     
@@ -356,7 +374,6 @@ def write_temp_model_to_netcdf ( path_for_results , obj ) :
 
     ncfile.close ( )
     
-
 
 
 def create_ceilo_plot ( L1 , vdr = None , mass = None , instrument = None , savepath = None , location = None ) :

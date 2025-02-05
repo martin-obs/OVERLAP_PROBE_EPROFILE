@@ -21,13 +21,19 @@ from overlap_probe_eprofile.overlap_utils import conv3d, prctile
 
 def get_ov_ok_info_df ( A_dict , rng ) :
     
-    """Takes in a dictionary of results, loops through and constructs lists of 
-    time intervals containing good samples, and corresponding lists of upper 
-    and lower range limits and overlap functions. 
+    '''
     
-    """ 
-       
+    Takes in a dictionary of results from process checks, loops through and 
+    
+    constructs lists of time intervals containing good samples, and corresponding 
+    
+    lists of upper and lower range limits and overlap functions. 
+    
+    '''
+        
     time_intervals  = [ np.repeat ( key , np.shape (  A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True ] ) [ 0 ] )  for key in A_dict.keys ( ) if  bool ( any (A_dict [ key ] ['data_frame'] ['pass_all'] ) ) ] 
+        
+    #print (time_intervals)
     
     time_intervals = [ item for sublist in time_intervals for item in sublist ]
      
@@ -54,6 +60,12 @@ def get_ov_ok_info_df ( A_dict , rng ) :
     upper = [ list ( A_dict [ key ] [ 'data_frame' ] [ A_dict [ key ] ['data_frame'] [ 'pass_all'] == True][ 'rng_end'] ) for key in ts ]
     
     max_rng_for_interval = [ item for sublist in [ np.repeat( np.max ( r ) , len ( r ) ) for r in upper ] for item in sublist ]
+    
+    print (len(ts))
+    
+    print (len(ov_fcs) , len(temperatures))
+    
+    print (len(max_rng_for_interval))
          
     return time_ints , times , lower , upper , max_rng_for_interval , ov_fcs , temperatures
 
@@ -121,10 +133,9 @@ def make_variance_windows ( dt , times , config ) :
     
     return sliding_inds
 
-
-
     
       
+
 def check_rel_grad_magn ( rng  , max26, ov_fcs , times , deep_signal , config ):
     
     stack_size = np.shape ( ov_fcs ) [ 0 ]
@@ -216,14 +227,12 @@ def stdomean (sliding_window_inds , deep_signal , denomenator , ov_shape ,  time
         
         variance [ sw , : ] = np.max ( v , axis = 1 )
                     
-    return variance    
+    return variance       
 
 
 def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
     
     time_intervals , times , lower , upper , max_rng , ov_fcs , temperatures = get_ov_ok_info_df ( results_dict , rng  )
-    
-    print ('No. of corrected overlap functions before final selection = ' , len ( ov_fcs ) )
     
     max26 = [ np.max ( r )  for r in upper ]
     
@@ -248,8 +257,6 @@ def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
         condition1 = check_variance (  deep_signal  , ov_fcs , times , dt  , config )
         
         condition2 = check_rel_grad_magn ( rng  , max26 , ov_fcs  , times , deep_signal , config )
-        
-        print ('No. of corrected overlap functions after good tests = ' , sum ( condition1 * condition2 ) )
           
         return condition1 * condition2
     
@@ -258,8 +265,10 @@ def do_sort_checks ( results_dict , dt , rng , rcs , ov , config ) :
         return np.ones( np.shape ( ov_fcs ) [ 0 ] ).astype(bool)
     
 
+
 def remove_failed ( results_dict , passed_inds , rng  , config ) :
-       
+    
+    
     passed_inds = passed_inds
     
     ovs = np.zeros ( len ( rng ) )
@@ -286,7 +295,7 @@ def remove_failed ( results_dict , passed_inds , rng  , config ) :
     
     final_ovs , final_ov  ,  outlier_pass_inds = remove_outliers ( ovs , rng , config )
     
-    #print ('final ovs b4 outlier removal= ' , np.shape ( final_ovs ) )
+    print ('final ovs = ' , np.shape ( final_ovs ) )
     
     intervals = intervals [ outlier_pass_inds, :]
     
@@ -316,8 +325,9 @@ def remove_outliers (  ovs , rng , config ) :
     pc_75 = np.asarray (  pc_75 )
     pc_50 = np.asarray (  pc_50 )   
    
+
     outliers_plus = pc_50 + whiskers*(pc_75-pc_25)
-            
+        
     outliers_minus = pc_50 - whiskers*(pc_75-pc_25)
     
     ov_final = np.zeros ( len ( rng ) ) 
@@ -326,7 +336,7 @@ def remove_outliers (  ovs , rng , config ) :
 
     for r , ov_func in enumerate ( ovs ) :
 
-        if  not (  ( any ( ovs [ r , : ]  < outliers_minus ) ) | ( any ( ovs [ r , : ] > outliers_plus ) ) ) :
+        if  ( all ( ovs [ r , : ]  >= outliers_minus ) ) and ( all (ovs[r,:]   <= outliers_plus ) ) :
             
             ov_final = np.vstack ( ( ov_final , ov_func ) )
             
@@ -335,12 +345,20 @@ def remove_outliers (  ovs , rng , config ) :
         else:
             
             outlier_pass_inds.append ( False )
-            
-    print ('No. of corrected overlap functions after outlier removal = ' , np.shape(ov_final[1:,:])[0])
     
     return ov_final [ 1 : , : ] , np.nanmean ( ov_final , axis = 0 ) , outlier_pass_inds
         
 
- 
+def quantile ( x , q ) :
+    
+    n = len(x)
+    
+    y = np.sort(x)
+    
+    return ( np.interp ( q , np.linspace ( 1 / ( 2 * n ) , ( 2 * n - 1 ) / ( 2 * n ), n ), y ) )
+
+def prctile ( x , p ) :
+      
+    return ( quantile ( x ,  p  / 100 ) )   
       
     
