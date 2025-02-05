@@ -57,30 +57,30 @@ class Temperature_model_builder ( object ) :
             class object containing temperature model and associated variables
 
         '''
-        # mvh
 
-        #self.all_available_files = [ f for f in np.sort ( os.listdir ( path_to_csvs ) ) if os.path.isfile ( path_to_csvs + f )  ] # might cause issues in case of LOM change
-        
         self.all_available_files_temp = [ f for f in np.sort ( os.listdir ( path_to_csvs ) ) if os.path.isfile ( path_to_csvs + f )  ]
 
-        # Extraction of the dates from filenames
+        print (self.all_available_files_temp) #mvh
+
+        # Expression régulière pour extraire la date à partir du nom de fichier
         pattern = r"\d{4}-\d{2}-\d{2}.csv"
 
+        # Fonction de tri personnalisée pour extraire la date à partir du nom de fichier
         def sort_by_date(file_name):
 
+            # Recherche de la date dans le nom de fichier en utilisant l'expression régulière
             match = re.search(pattern, file_name)
-
             if match:
-
                 return match.group()
-            
             else:
+                return ""  # Retourne une chaîne vide si aucune date n'est trouvée
 
-                return "" 
+        # Trier les fichiers par date croissante en utilisant la fonction de tri personnalisée
+        print ("files sorted : ")
 
-        self.all_available_files = sorted(self.all_available_files_temp, key=sort_by_date)   
-
-        # mvh     
+        self.all_available_files = sorted(self.all_available_files_temp, key=sort_by_date)
+        
+        #print (self.all_available_files)
         
         self.dt_start = datetime.datetime.strptime ( date_start , '%Y/%m/%d' ).date ( )
         
@@ -107,7 +107,7 @@ class Temperature_model_builder ( object ) :
         
         saved as a Pandas dataframe, this will be changed to a named tuple in future
         
-        for easier access.
+        for easier access
         
         '''
 
@@ -126,19 +126,23 @@ class Temperature_model_builder ( object ) :
         
     def check_dates_available ( self ) :
                
-        self.all_available_dates = np.sort ( [ d  [ -14 :-4 ] for d in self.all_available_files ] )
+        #self.available_files_opt_mod = [d for d in self.all_available_files if any( self.op_mods ) ] #mvh
+        
+        #self.all_available_dates = np.sort ( [ d  [ -14 :-4 ] for d in self.available_files_opt_mod ] ) #mvh
+        
+        self.all_available_dates = np.sort ( [ d  [ -14 :-4 ] for d in self.all_available_files ] ) #mvh
                
         self.all_available_dts = np.asarray ( [ datetime.datetime.strptime ( d , '%Y-%m-%d' ).date ( ) for d in self.all_available_dates ] )
-                
+        
         start_dt_ind = (np.where ( self.all_available_dts >= self.dt_start ) [ 0 ] [ 0 ] )
                
-        stop_dt_ind = (np.where ( self.all_available_dts <= self.dt_stop ) [ 0 ] [ -1 ] +1 )
+        stop_dt_ind = (np.where ( self.all_available_dts <= self.dt_stop ) [ 0 ] [ -1 ] + 1 )
         
         number_avaialble = stop_dt_ind - start_dt_ind
         
         if number_avaialble > 0 :
             
-            print ( number_avaialble , ' overlap files available for chosen dates and optical module id' )
+            print ( number_avaialble , ' overlap files available for chosen dates and wigos station id ' )
             
             self.start_ind = start_dt_ind
             
@@ -153,6 +157,8 @@ class Temperature_model_builder ( object ) :
             print ('no overlap files available for chosen dates, temperature model will not be made' )
             
             sys.exit()
+                   
+        
                    
 
     def get_meta_data_from_first_file ( self ) :
@@ -172,40 +178,43 @@ class Temperature_model_builder ( object ) :
             self.instrument_serial_number = str ( self.meta_data [ 4 ].split ( ' ' ) [ 2 ] ).rstrip()
         
     def check_optical_module ( self ) :
+    
+        print ( " check optical module " ) 
 
-        # --- mvh 
-
-        # op_mods =  [ d.split ( '_' ) [ 3 ] for d in self.available_files ] 
+        #print (self.available_files)
 
         op_mods =  [ d.split ( '_' ) [ -2 ] for d in self.available_files ] 
 
+        print (op_mods)
+
         self.op_mods = op_mods[-1]
-        
-        # --- mvh
         
         self.op_mods_list = list ( Counter ( op_mods ).keys ( ) )
         
         self.op_mod_dict = Counter ( op_mods )
         
-        print ( 'containing ' ,  len ( self.op_mods_list ) , ' optical module(s) ' , self.op_mods_list ,', a temperature model will be made for each optical module')
+        #print ( 'containing ' ,  len ( self.op_mods_list ) , ' optical module(s) ' , self.op_mods_list ,', a temperature model will be made for each optical module')
+        print ( 'last optical module id is : ', {op_mods[-1]}, ', creating model for this one' )
         
-    
-    # --- mvh
-
     def select_dates_for_op_mods ( self ) :
+	
+        #self.op_mods = self.op_mods_list [ ]
 
-        print ( " Creating model for optical module id : ",  self.op_mods) 
+        print ( f" ----- Creating model for optical module id : ",  self.op_mods, " ------ " ) 
+
+        #self.available_files = fichiers_tries
+        #print ("now self.available_files should be sorted correctly only by date : ", fichiers_tries)
+
 
         for i in range(len(self.available_files) -1, -1, -1) :
-            
-            tub = self.available_files[i][-24:-15]  
-
+            #print (self.available_files[i])
+            tub = self.available_files[i][-24:-15]  #TUB210019_2024-01-06.csv
             tub_before = self.available_files[i-1][-24:-15]
+            #print (tub)
+            #print (tub_before)
 
             if tub != tub_before :
-                
                 print (f'a difference is found between tub {tub} and {tub_before} at iteration {i}')
-                
                 break
 
 
@@ -217,11 +226,12 @@ class Temperature_model_builder ( object ) :
 
         number_avaialble = len ( self.available_files )
 
-        print (number_avaialble, " available files for this laser optical module : ")
+        print ("available files for this laser optical module : ")
 
-    # --- mvh
+        #print (self.available_files)
 
-
+        #print (self.available_dts)
+        
         
     def check_resolution_n_get_range ( self ) :
 
@@ -231,17 +241,13 @@ class Temperature_model_builder ( object ) :
            
            self.rng_res_change_ind = np.where ( np.diff ( self.rng_res ) !=  0 )
 
-           # --- mvh
-           
-           #date_changes = [ d [ -14 :-4 ] for d in self.available_files [ [ self.rng_res_change_ind ] [ 0 ] [ 0 ] ] ]   
+           #date_changes = [ d [ -14 :-4 ] for d in self.available_files [ [ self.rng_res_change_ind ] [ 0 ] [ 0 ] ] ]   #mvh
            
            date_changes = []
            
            for el in list ( self.rng_res_change_ind [ 0 ] ) :
            
-               date_changes.append ( self.available_files [ el ] [ -14 :-4 ] ) 
-           
-           # --- mvh
+               date_changes.append ( self.available_files [ el ] [ -14 :-4 ] )
            
            print ('Range resoloution changes on date(s) ' , *date_changes , sep = ', ' )
            
@@ -280,6 +286,8 @@ class Temperature_model_builder ( object ) :
         
            
     def get_daily_medians ( self , use_matlab = False ) :
+
+        print ("SELECTION OF DAYS SUITABLE") 
         
         day_ov = np.empty_like ( self.rng )
         
@@ -298,26 +306,40 @@ class Temperature_model_builder ( object ) :
                 ov , t = self._create_daly_median ( df )
             
                 day_ov = np.vstack ( ( day_ov , ov ) )
+
+                #print ( day_ov )
+
+                #print ( day_ov [ : 20 ] ) 
                 
                 day_temp.append ( t )
                 
                 plt_date.append ( d )
             
         self.daily_ovs = day_ov [ 1 : , : ]
+
+        #print ( self.daily_ovs )
         
         self.daily_temp = np.asarray ( day_temp ) [ : ]
         
         self.plt_dates = plt_date [ : ]
    
     def _create_daly_median ( self , df ) :
+
+        print ( "CHECK MEDIAN OF DAILY FUNCTION" )
         
         ov = np.median ( np.asarray ( df.iloc [ : , 6: ] ) , axis = 0 )
+
+        print ( ov [ : 15 ] ) 
         
         t = np.median ( np.asarray ( df.iloc [ : , 4 ] ) )
+
+        print ( t )
         
         if len (ov) != len (self.ov_native_rng) :
             
             rng_this_file = np.asarray ( df.columns.tolist() [ 6 : ] , dtype = 'float')
+            
+            #ov = np.intep ( self.rng , rng_this_file , ov )
             
             ov = np.interp ( self.rng , rng_this_file , ov )
              
@@ -329,9 +351,13 @@ class Temperature_model_builder ( object ) :
                
     def do_regression_1 ( self ):
         
+        print ("DO REGRESSION 1")
+
         self._make_regression_signals_1 ( )
                     
         self.alpha_1 , self.beta_1 , self.r2_1 = self._simple_linear_fit ( self.n_1 , self.A_1  , self.sum_rel_diff , axis = 0 )   
+
+        print ( self.alpha_1, self.beta_1, self.r2_1 )
                    
     def _make_regression_signals_1 ( self ) :
         
@@ -392,11 +418,17 @@ class Temperature_model_builder ( object ) :
     
     def choose_n_check_r2_diff_window ( self ) :
         
+        #print (self.r2_1)
+
         self.diff_r2 = np.ma.diff ( self.r2_1 )
+
+        #print (self.diff_r2)
         
         self.diff_r2 [ 0 ] = 0
         
         self.bool_run_len = list ( mit.run_length.encode ( abs ( self.diff_r2 )  < self.config ['thrsh_diff_r2'].values [ 0 ] ) )
+
+        #print (self.bool_run_len)
 
         max_true_count = -1
         
@@ -411,7 +443,7 @@ class Temperature_model_builder ( object ) :
                 max_true_idx = idx
   
         self.max_true_count = max_true_count
-        
+               
         if self.max_true_count > self.config ['number_samples'].values [ 0 ] :
             
             self.number_samples_flag = True
@@ -421,8 +453,12 @@ class Temperature_model_builder ( object ) :
             self._if_last_diff_negative_step_forwards ( )
             
         else :
+
+            print ("Not enough data to trust model, model wont be created")
             
             self.number_samples_flag = False
+        
+        
 
     def _if_last_diff_negative_step_forwards ( self ):
         
@@ -445,13 +481,15 @@ class Temperature_model_builder ( object ) :
          
     def _remove_abberant_regression_results ( self ) :
 
-        # --- mvh
+        print ("CHECK FOR ABERRANT POINTS IN ALPHA AND BETA")
+
+        #print (self.alpha_2[:50], self.beta_2[:50])
                 
-        # abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 90 ) )
+        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 200 ) ) #120
 
-        abberations = np.where( ( abs ( self.alpha_2 )  > 10  ) | ( abs ( self.beta_2 ) > 200 ) )
+        #print (abberations)
 
-        # --- mvh
+        #print (abberations [ 0 ] )
         
         if any ( abberations [ 0 ] ) : 
         
@@ -460,26 +498,31 @@ class Temperature_model_builder ( object ) :
             self.alpha_2 [ : abberation_ind + 1 ] = 0
             
             self.beta_2 [ : abberation_ind + 1 ] = 0
+
+            #print ( self.alpha_2 [ : 50 ] ) 
+
+            #print ( self.beta_2 [ : 50 ] )
+
         
     def _check_for_artefacts ( self ) :
-
-        # --- mvh
         
-        # grad_a_filtered = np.diff ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] )
+        # grad_a_filtered = np.diff ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] ) #mvh
     
-        # if not any ( grad_a_filtered < -0.7 ) and not any ( grad_a_filtered > 0.7 )  :
-
+        # if not any ( grad_a_filtered < -10 ) and not any ( grad_a_filtered > 10 )  :     #0.7
+    
+        #     self.artefact = False
+            
+        # else :
+            
+        #     print ( 'Warning: artfifact detected with R2 method, trying with artifact progressive quality control' )
+            
         if not any ( self.alpha_2 [ ( self.rng >= 160 ) * ( self.rng <= 700 ) ] == 0 ):
-    
+        
             self.artefact = False
             
         else :
             
-            # print ( 'Warning: artfifact detected with R2 method, trying with artifact progressive quality control' )
-
-            print ( 'Warning: abberant coefficients, applying daily progressive quality control' )
-
-        # --- mvh
+            print ( 'Warning: abberant coefficients, applying daily progressive quality control' ) #mvh
                         
     def do_regression_2 ( self ) :
             
@@ -498,18 +541,16 @@ class Temperature_model_builder ( object ) :
             self.end_ind = len ( self.A_2 ) 
             
         else:
-
-            # --- mvh
             
-            # print ( 'Warning: not enough stable points so trying with artifact progressive detection' )  
-            
-            print ( 'Warning: not enough data, artifact progressive detection' )
-
-            # --- mvh
+            print ( 'Warning: not enough data, artifact progressive detection' )  
         
         while self.artefact :
+
+            #print (self.artefact)
             
             self.end_ind = self.end_ind - 1
+
+            #print (self.end_ind)
             
             self._make_regresions_signals_2 ( )
             

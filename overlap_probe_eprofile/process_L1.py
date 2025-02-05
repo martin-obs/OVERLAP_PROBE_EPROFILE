@@ -1,60 +1,47 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-"""Class to hold processing tools for CHM15k ceilometer data. The Class methods 
-   are used to read in a CHM15k data file, prepare it for processing
-   and then loop over defined time windows applying various checks contained in
-   overlap_probe_eprofile.pre_checks, overlap_probe_eprofile.process_checks, and
-   overlap_probe_eprofile.sort_samples
-   
-   A reference overalp function and a configuration file are necessary to start 
-   the processing. This module was developed using a specific overlap function, 
-   that is "TUB120011_20121112_1024", for which empirical thresholds and settings
-   are included in the config.txt file. Using a different reference overlap would 
-   probably require different values for these thresholds.  
-   
-   This is a refactoring of code written by Maxime Hervo, Yann Poltera, Rolf Ruefenacht and 
-   Melania Van Hove in Matlab
-   
-   @author martin osborne: martin.osborne@metoffice.gov.uk
-   
-   
-   See also
-   --------
-   overlap_probe_eprofile.pre_checks
-   overlap_probe_eprofile.process_checks
-   overlap_probe_eprofile.sort_samples
-   
-"""
+'''
+    Started December 2022
+
+    Class to hold a bunch of celometer processing tools. This is 
+
+    a translation / refactoring of code written by Maxime Hervo
+
+    Rolf Ruefenacht and Melania Van Hove in Matlab
+
+    @author martin osborne: martin.osborne@metoffice.gov.uk
+
+'''
 
 import numpy as np
 import netCDF4 as nc
 import datetime
+import pytz
 import pandas as pd
 from scipy import stats
-from scipy.interpolate import interpn
 import os
 
-import overlap_probe_eprofile.find_fitting_windows as ffw
-import overlap_probe_eprofile.find_candidate_functions as fcf
-import overlap_probe_eprofile.final_selection as fs
 
+import overlap_probe_eprofile.pre_checks as pc
+import overlap_probe_eprofile.process_checks as proc
+import overlap_probe_eprofile.sort_samples as srt
+
+
+#-------------------------------------------------------------------------------
 
 class Eprofile_Reader ( object ) :
-    """Class to read CHM15k data file and hold the class methods needed to 
-    produce corrected overlap functions. Data file should be a standard format
-    L1 E-PROFILE file.
-    
-    Parameters
-    ----------
-    
-    data_file : string
-        full path to an L1 file of CHM15k data.
-  
+    """Class to read in netCDF of celometer data. Makes methods available
+    to allow processing through to products
+
+    :param data_file: full path to a netCDF file containing an L1 file of
+    CHM15k data
+    :type data_file:  str    
     """
     def __init__( self , data_file  ):
         """Constructor method
         """
+        
         L_nc = nc.Dataset( data_file )
 
         self.raw_time =  np.asarray ( L_nc.variables [ 'time' ] [ : ] ) 
@@ -81,29 +68,20 @@ class Eprofile_Reader ( object ) :
 
         self.instrument_serial_number = getattr ( L_nc , 'instrument_serial_number' ) 
         
-        
-        
     def get_constants ( self , config , ov ) :
         
-        """Reads in and sorts settings / threshold values. Further threshold
-        values are computed from a combination of these values and data_file 
-        dimentions. The default overlap function is also read in from a text file.
+        """Reads in a text file of settings / threshold values. Those that can 
+        be are computed from a combination of other settings / data file 
+        dimentions. Aslo reads in a default ovelap function from a text file
         Currently saved as a Pandas dataframe, this will be changed
-        to a named tuple in future for easier access.
+        to a named tuple in future for easier access
         
-        Parameters
-        ----------
-        
-        config : string 
-            path to text file containing settings and thresholds
-        ov : sting
-            path to text file containing a default overlap function. The
-            resolution can be different to the data contained in data_file, but 
-            the data will be interpolated into a native resolution. This module 
-            was developed using a specific overlap function, that is 
-            "TUB120011_20121112_1024", for which empirical thresholds and settings
-            are included in the config.txt file. Using a different reference 
-            overlap would probably need different values for these thresholds. 
+        :param config: path to text file containing settings and thresholds
+        :type config: str
+        :param ov: path to test file containing a default overlap function. The
+        resolution can be different to the data contained in data_file, but 
+        the function will be interpolated into a native resolution
+        :type ov : str
         """
 
         config_df = pd.read_csv ( config , sep = ',', skiprows = 1 , header = None )
@@ -116,7 +94,7 @@ class Eprofile_Reader ( object ) :
 
         self.ov = np.asarray ( pd.read_csv ( ov , sep = '\t' , skiprows = 1 , header = None , nrows = 1 ) ) [ 0 ]
         
-        self.check_ov_range_res_same_as_data ( )
+        self._check_ov_range_res_same_as_data ( )
 
         config_df [ 'd_fit_range' ] = np.rint ( self.rng_res )
 
@@ -139,31 +117,20 @@ class Eprofile_Reader ( object ) :
         config_df [ 'min_slope' ] = -2.5*1e-4
 
         self.config = config_df
-        
 
 
-
-    def check_ov_range_res_same_as_data ( self ) :
-        """Checks that the data range resolution is the same as the reference overlap 
-        function . If not the data is interpolated onto the grid of the reference 
-        overlap function. This has the effect of smothing the data slightly if it 
-        was originally on a finer grid. This matches the behaviour of the original 
-        Matlab code.
+    def _check_ov_range_res_same_as_data (self):
+        """Checks that the range resolution of the default overlap function is
+        the same as the data file
         """
         
         if len ( self.ov ) != len ( self.rng ) :
-                   
-            ov_native_rng = np.arange ( 0, 15344, 14.984999 )
             
-            t_mesh, r_mesh = np.meshgrid (  self.raw_time , ov_native_rng )
+            ov_native_rng = np.arange ( 14.985 ,  15344.64+14.985 , 14.985 )
             
-            rcs_0 = interpn ( ( np.asarray ( self.raw_time ), np.asarray ( self.rng ) ) , self.rcs_0 , ( t_mesh , r_mesh ), bounds_error=False , fill_value = 0 ,  method = 'linear' )
-            
-            self.rcs_0 = np.transpose(rcs_0)
-      
-            self.rng = ov_native_rng 
+            self.ov = np.interp ( self.rng ,  ov_native_rng , self.ov )
 
-    def remove_some ( self ) :
+    def remove_some (self ) :
         
         """This is a utility used during code development to ensure that the code 
         works with data files with missing profiles - please ignore
@@ -184,8 +151,8 @@ class Eprofile_Reader ( object ) :
     def create_time ( self ):
 
         """Creates more convinient time stamps. The time stamp that comes with
-        the data is in fractional days since epoch and it is convenient to work
-        into seconds since epoch (UNIX time) and then convert this into datetime 
+        the data is in fractional days since epoch and it is convenient to 
+        seconds since epoch (UNIX time) and the convert this into datetime 
         objects
         """
        
@@ -199,17 +166,7 @@ class Eprofile_Reader ( object ) :
     def fill_gaps ( self ) :
 
         """Fills in any missing profiles within the start and end time of data_file
-        with nans by calling make_fill_times and find_and_fill. Any time steps in
-        the data_file time array that are bigger than 1.5 x the mode time step are 
-        assumed to be gaps and are filled with nans
-        
-        See also
-        --------
-        
-        overlap_probe_eprofile.process_L1.Eprofile_Reader.make_fill_times
-        
-        overlap_probe_eprofile.process_L1.Eprofile_Reader.find_and_fill
-        
+        with NaNs
         """
 
         tdelta = np.ediff1d ( self.time )
@@ -224,17 +181,17 @@ class Eprofile_Reader ( object ) :
 
             ind_list = np.insert ( ind_list , 0 , 0 )
 
-            self.time = self.make_fill_times ( self.time , gaps , mode_delta , ind_list )
+            self.time = self.__make_fill_times ( self.time , gaps , mode_delta , ind_list )
 
-            rcs_0 = self.find_and_fill( self.rcs_0 , gaps , ind_list)
+            rcs_0 = self.__find_and_fill( self.rcs_0 , gaps , ind_list)
 
-            cbh = self.find_and_fill ( self.cbh , gaps , ind_list )
+            cbh = self.__find_and_fill ( self.cbh , gaps , ind_list )
 
             cbh [ self.missing_flag ] = -999
 
             self.cbh = cbh
 
-            self.sci = self.find_and_fill ( self.sci , gaps , ind_list )
+            self.sci = self.__find_and_fill ( self.sci , gaps , ind_list )
 
             rcs_0 [ self.missing_flag , : ] = np.nan
 
@@ -247,35 +204,23 @@ class Eprofile_Reader ( object ) :
             missing_flag [ : ] = False
 
             self.missing_flag = missing_flag.astype ( bool )
-            
 
-    def make_fill_times ( self , signal , gaps , mode_delta , ind_list ) :
+    def __make_fill_times ( self , signal , gaps , mode_delta , ind_list ) :
 
-        """Having found any gaps in the data, this function is called by 
-        fill_gaps to make a continuous time variable with datetimes inserted 
-        where data was missing
-        
-        Parameters
-        ----------
-        
-        signal : 2D array
-            data with gaps to be filled
-        gaps : list 
-            sizes of any gaps in data 
-        mode_delta : float
-            mode lenght of time step in data 
-        ind_list : list
-            indices where nans are to be inserted 
-            
-        Returns
-        -------
-        
-        filled_time_signal : 2D array
-            datetime array with appropriate datetimes inserted where data is missing 
-            
+        """Having found gaps, make time stamps to fill and so make a 
+        continuous time        
+        :param signal: data with gaps to be filled
+        :type signal: array
+        :param gaps: sizes of any gaps in data 
+        :type gaps: list
+        :param mode_delta: mode lenght of time step in data 
+        :type mode_delta: float
+        :param ind_list: indices where nans are to be inserted
+        :type ins_list: list 
+        :return: filled_signal : data with nans inserted to 
+        where data is missing 
+        :rtype: array
         """
-        
-        
 
         gap_inds = np.where ( gaps > 1 )
 
@@ -287,9 +232,9 @@ class Eprofile_Reader ( object ) :
 
         t_fill_array = np.concatenate ( [ np.arange ( s , e , mode_delta ) for s , e in zip ( sts , ends ) ] , axis = None )
 
-        filled_time_signal = np.zeros ( int ( sum ( gaps ) ) + 1 )
+        filled_signal = np.zeros ( int ( sum ( gaps ) ) + 1 )
 
-        filled_time_signal [ ind_list ] = signal
+        filled_signal [ ind_list ] = signal
 
         missing_flag = np.zeros ( int ( sum ( gaps ) ) + 1 )
 
@@ -299,39 +244,27 @@ class Eprofile_Reader ( object ) :
 
         self.missing_flag = missing_flag.astype ( bool )
 
-        fill_inds = np.where ( filled_time_signal == 0 )
+        fill_inds = np.where ( filled_signal == 0 )
 
-        filled_time_signal [ fill_inds ] = t_fill_array
+        filled_signal [ fill_inds ] = t_fill_array
 
-        return filled_time_signal
+        return filled_signal
 
 
-    def find_and_fill ( self , signal , gaps , ind_list ) :
+    def __find_and_fill ( self , signal , gaps , ind_list ) :
 
         """This does the actuall filling and is called within 
-        fill_gaps
-
-        Parameters
-        ----------
+        fill_missing_profiles 
+        :param signal: data with gaps to be filled
+        :type signal: array
+        :param gaps: sizes of any gaps in data 
+        :type gaps: list
+        :param ind_list: indices where nans are to be inserted
+        :type ins_list: list 
         
-        signal : array  
-            data with gaps to be filled
-        gaps : list 
-            sizes of any gaps in data 
-        ind_list : list
-            indices where nans are to be inserted
-
-        Returns
-        -------        
-
-        filled_signal : array
-            data with columns of nans inserted where data is missing 
-            
-        See also
-        --------
-        overlap_probe_eprofile.process_L1.Eprofile_Reader.fill_gaps
-        
-
+        :return: filled_signal : data with nans inserted to 
+        where data is missing 
+        :rtype: array
         """
 
         if signal.ndim == 1 :
@@ -350,37 +283,18 @@ class Eprofile_Reader ( object ) :
 
 
     def catch_errors ( self , checks , max_fit_ranges , dt , config , variance , X , Y  ) :
-        """Sorts though the results of the pre-checks module and returns the 
-        reason for failiure as a string.
+        """Sorts though the results of the pre-checks and returns the reason for 
+        any failiures
+        :param signal: data with gaps to be filled
+        :type signal: array
+        :param gaps: sizes of any gaps in data 
+        :type gaps: list
+        :param ind_list: indices where nans are to be inserted
+        :type ins_list: list 
         
-        Parameters
-        ----------
-        checks : list of bools 
-            resuts of pre-checks
-        max_fit_ranges : list 
-            list of max fitting range after each pre-check
-        dt : list of datetime objects
-            datetimes for current time window
-        config : class object 
-            object containing varios config thresholds
-        variance : float 
-            variance at max fitting range after variance check
-        X : float 
-            signal gradient in X direction at max fitting range after grad check
-        Y : float 
-            signal gradient in Y direction at max fitting range after grad check
-            
-        Returns
-        -------
-        
-        reason for failiure with details : string
-
-
-        See also
-        --------
-        overlap_probe_eprofile.pre_checks module
-            Returns True of False plus some details for various pre-checks.
-
+        :return: filled_signal : data with nans inserted to 
+        where data is missing 
+        :rtype: array
         """
         
 
@@ -394,23 +308,21 @@ class Eprofile_Reader ( object ) :
 
         if ~checks [ 2 ] :
 
-            return  'lowest cloud base is ' + str ( round ( max_fit_ranges[0] , 1 ) ) + 'm should be ' + str ( self.config [ 'min_fit_range' ].values [ 0 ] ) + 'm'
+            return  'lowest cloud base is ' + str ( round ( max_fit_ranges[0] , 1 ) ) , 'm should be ' + str ( self.config [ 'min_fit_range' ].values [ 0 ] ) + 'm'
 
         if ~checks [ 3 ] :
 
-            return 'failed variance check ' + str ( round ( variance , 3 ) ) +  ' at ' + str ( round ( max_fit_ranges[1] , 1 ) ) + 'm'
+            return 'failed variance check ' + str ( round ( variance , 3 ) ) +  ' at ' , str ( round ( max_fit_ranges[1] , 1 ) ) + 'm'
 
         if ~checks [ 4 ] :
 
-            return 'failed grad check: X = ' + str ( round ( X , 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 3 ] , 1 ) )  + ' Y = ' + str ( round ( Y, 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 4 ] , 1 ) ) + ' finaly ' + str ( round( max_fit_ranges [ 2 ] , 1 ) ) + 'm'
+            return 'failed grad check: X = ' + str ( round ( X , 3 ) ) + ' Y = ' + str ( round ( Y, 3 ) ) + ' at ' + str ( round( max_fit_ranges [ 2 ] , 1 ) ) + 'm'
         
     def write_result_to_csv ( self , save_path ) : 
         
         '''
         
-        Create a results data frame and save to file
-        :param save_path: path to location results csv will be save in
-        :type save_path: string
+        Create results cvs and save to file
         
         '''
     
@@ -430,7 +342,9 @@ class Eprofile_Reader ( object ) :
               
         location =  self.site_location.split ( ',' ) [ 0 ]
         
-        complete_path = '/'.join ( ( save_path , location ) )
+        #complete_path = '/'.join ( ( save_path , location ) )
+        
+        complete_path = '/'.join ( ( save_path , self.wigos_station_id ) )   
         
         if not os.path.exists ( complete_path )  :
             
@@ -458,7 +372,7 @@ class Eprofile_Reader ( object ) :
         
         if np.sum(self.passed_inds) != 0: 
         
-            self.intervals , self.rng_intervals , self.final_ovs , self.temperatures , self.final_ov = fs.remove_failed ( self.results , self.passed_inds , self.rng , self.config )
+            self.intervals , self.rng_intervals , self.final_ovs , self.temperatures , self.final_ov = srt.remove_failed ( self.results , self.passed_inds , self.rng , self.config )
             
             self.write_result_to_csv ( save_path  )
                 
@@ -466,26 +380,29 @@ class Eprofile_Reader ( object ) :
       
 
     def loop_over_time ( self , start = None , stop = None ) :
-                
-        """Loop through data with a window 'time_interval_length' wide and 
-        shifting by 'd_fit_time' each loop, as defined in config.txt. Because
-        of issues comparing datetimes, time deltas and timestamps created from 
-        fractional days since midnight, and also because the time stamp in the 
-        L1 file wanders ( e.g. upto a second either side of 15s ) sometimes the 
-        window length ends up one profile too short or too long. Therefore the 
-        mode width is used to ensure all time windows are the same width (for 
-        example 120 profiles wide if 'time_interval_length' = 30 min and time resolution is 15s )
         
-        Parameters
-        ----------
+        '''
         
-        start : int
-            index to start from if we are not using whole file
-        end : int 
-            index to stop at
-        """
-
-                                        
+        Loop through data with a window 'time_interval_length' wide and 
+        
+        shifting by 'd_fit_time' each loop. Because of issues comparing 
+        
+        datetimes, time deltas and timestamps created from fractional days
+        
+        since midnight, and also because the time stamp in the L1 file 
+        
+        wanders ( e.g. upto a second either side of 15s ) sometimes the window 
+        
+        length ends up one profile too short or too long. Therefore the 
+        
+        mode width is used to ensure all time windows are the same width 
+        
+        ( for example 120 profiles wide if 'time_interval_length' = 30 min 
+         
+         and time resolution is 15s )
+                        
+        '''
+                                          
         results = {}
 
         if start == None or stop == None :
@@ -512,9 +429,7 @@ class Eprofile_Reader ( object ) :
         
         mode_diff = stats.mode ( np.asarray ( end_inds ) - np.asarray ( start_inds ) )
         
-        end_inds = np.asarray(start_inds) + mode_diff.mode
-        
-        end_inds = end_inds.tolist()
+        end_inds = start_inds + mode_diff.mode
         
         overlap_functions = np.empty_like ( self.ov )
         
@@ -528,23 +443,23 @@ class Eprofile_Reader ( object ) :
   
                 results [ int_str ] = {}
 
-                check1 = ffw.at_least_one_profile ( self.missing_flag [ s : f ] )
+                check1 = pc.at_least_one_profile ( self.missing_flag [ s : f ] )
 
-                check2 = ffw.all_clear_sky ( check1 ,  self.sci [ s : f ] ) 
+                check2 = pc.all_clear_sky ( check1 ,  self.sci [ s : f ] ) 
 
-                check3 , max_available_fit_range1 = ffw.enough_clear_range_cbi ( check2 , self.cbh [ s : f , : ] , self.config )
+                check3 , max_available_fit_range1 = pc.enough_clear_range_cbi ( check2 , self.cbh [ s : f , : ] , self.config )
 
-                check4 , max_available_fit_range2 , variance = ffw.running_variance ( check3 , self.rcs_0 [ s : f , : ] , self.rng , dt [ s : f ] , self.config , max_available_fit_range1 )
+                check4 , max_available_fit_range2 , variance = pc.running_variance ( check3 , self.rcs_0 [ s : f , : ] , self.rng , dt [ s : f ] , self.config , max_available_fit_range1 )
 
-                check5 , max_available_fit_range , X , Y , m1 , m2 , m3  = ffw.check_grads ( check4 ,  self.rcs_0 [ s : f , : ]  , self.rng , self.config , max_available_fit_range2 )
+                check5 , max_available_fit_range , X , Y  = pc.check_grads ( check4 ,  self.rcs_0 [ s : f , : ]  , self.rng , self.config , max_available_fit_range2 )
 
-                max_fit_ranges = [ max_available_fit_range1 , max_available_fit_range2 , max_available_fit_range , m1 , m2 , m3 ]
+                max_fit_ranges = [ max_available_fit_range1 , max_available_fit_range2 , max_available_fit_range ]
 
                 if check1 and check2 and check3 and check4 and check5:
 
                     results [ int_str ] [ 'pre-check results' ] = 'passed pre-checks. Max range is = ' + str ( round ( max_available_fit_range , 1  ) )  + 'm' 
                     
-                    poly_results = fcf.do_quality_checks ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
+                    poly_results = proc.check_polyfit ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
                     
                     results [ int_str ] [ 'data_frame' ] = poly_results
                     
@@ -553,14 +468,16 @@ class Eprofile_Reader ( object ) :
                     
                     checks = [ check1 , check2 , check3 , check4 , check5 ]
                     
-                    results [ int_str ] [ 'pre-check results' ] = self.catch_errors ( checks , max_fit_ranges , dt [ s : f ] , self.config , variance , X , Y )
+                    results [ int_str ] [ 'pre-check results' ] = self.catch_errors ( checks , max_fit_ranges , dt [ s : f ] , self.config , variance , X , Y  )
                     
                     results [ int_str ] [ 'data_frame' ] = pd.DataFrame(data = [False], columns = ['pass_all'])
                     
         self.results = results
+       
+        passed_inds = srt.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
         
-        self.passed_inds = fs.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
-
+        self.passed_inds = passed_inds
+    
 
 
         
