@@ -237,7 +237,7 @@ def create_results_df ( rng , p , poly , resid , resid_whole_zone , ov , ovp_fc 
     
     results_for_this_interval [ 'residual' ] = resid
     
-    results_for_this_interval [ 'residual_thresh'] =  config [ 'thresh_resid_rel' ].values [ 0 ] * np.ma.mean ( poly , axis = 0) 
+    results_for_this_interval [ 'residual_thresh'] =  config [ 'thresh_resid_rel' ].values [ 0 ] * np.ma.mean ( poly )  
     
     results_for_this_interval [ 'residual_whole_zone' ] = resid_whole_zone
     
