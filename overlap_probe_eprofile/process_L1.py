@@ -459,7 +459,7 @@ class Eprofile_Reader ( object ) :
 
                     results [ int_str ] [ 'pre-check results' ] = 'passed pre-checks. Max range is = ' + str ( round ( max_available_fit_range , 1  ) )  + 'm' 
                     
-                    poly_results = fcf.do_quality_checks ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
+                    poly_results = fcf.do_quality_checks_meteoswiss ( self.rcs_0 [ s : f , : ] , self.rng , self.internal_temperature [ s : f ] , max_available_fit_range , self.config , self.ov )
                     
                     results [ int_str ] [ 'data_frame' ] = poly_results
                     
