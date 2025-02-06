@@ -218,7 +218,7 @@ def running_variance ( check ,  rcs_0 , rng , dt , config , max_available_fit_ra
 
                 ind = i_first_over_thresh_std_over_mean [ 0 ] [ 0 ]
 
-                max_available_fit_range = rng [ min_r + ind  ]
+                max_available_fit_range = rng [ min_r + ind]
 
                 return max_available_fit_range  >=  (config [ 'min_fit_range' ]  + config [ 'min_fit_length' ] ).to_numpy ( ) , max_available_fit_range , std_over_mean [ ind ] 
 
@@ -283,7 +283,7 @@ def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
         X , Y = 0.0 , 0.0 
 
-        m1 = m2 = m3 = max_available_fit_range 
+        m1, m2 , m3 = max_available_fit_range , max_available_fit_range , max_available_fit_range
 
         min_r = np.where ( rng >= config [ 'min_range_std_over_mean' ].to_numpy ( ) ) [ 0 ] [ 0 ]
 
@@ -331,7 +331,7 @@ def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
             chunk = ( relgradmagn_sub [ : , irgradmagn [ 0 ] : irgradmagn [ k ] ] )
 
-            if ( np.nanmax(chunk)  <= config [ 'max_relgrad' ].to_numpy( ) ) and (np.nanmean(chunk ) <= config [ 'max_relgrad_mean' ].to_numpy( ) ) :
+            if (  np.nanmax(chunk)  <= config [ 'max_relgrad' ].to_numpy( ) ) and (np.nanmean(chunk ) <= config [ 'max_relgrad_mean' ].to_numpy( ) ) :
 
                 m3 = rconv [ irgradmagn [ k ] -1 ]
 
@@ -339,10 +339,10 @@ def check_grads ( check ,  rcs_0 , rng , config , max_available_fit_range ) :
 
         max_available_fit_range = np.min ( [ max_available_fit_range , m1 , m2 , m3 ] )
 
-        return max_available_fit_range >=  (config [ 'min_fit_range' ]  + config [ 'min_fit_length' ] ).to_numpy ( ) , max_available_fit_range , X , Y , m1 , m2 , m3 
+        return max_available_fit_range >=  (config [ 'min_fit_range' ]  + config [ 'min_fit_length' ] ).to_numpy ( ) , max_available_fit_range , X , Y
 
     else :
 
-        return False , max_available_fit_range , 0.0 , 0.0 , 0.0 , 0.0, 0.0
+        return False , max_available_fit_range , 0.0 , 0.0 
 
 
