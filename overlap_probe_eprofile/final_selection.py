@@ -347,18 +347,6 @@ def remove_outliers (  ovs , rng , config ) :
             outlier_pass_inds.append ( False )
     
     return ov_final [ 1 : , : ] , np.nanmean ( ov_final , axis = 0 ) , outlier_pass_inds
-        
 
-def quantile ( x , q ) :
-    
-    n = len(x)
-    
-    y = np.sort(x)
-    
-    return ( np.interp ( q , np.linspace ( 1 / ( 2 * n ) , ( 2 * n - 1 ) / ( 2 * n ), n ), y ) )
-
-def prctile ( x , p ) :
-      
-    return ( quantile ( x ,  p  / 100 ) )   
       
     
