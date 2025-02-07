@@ -156,7 +156,7 @@ def do_regresion ( rcs_0 , rng , max_available_fit_range , config , ov ) :
     
     p = simple_linear_fit ( n , masked_rng , masked_signal )  
     
-    poly , resid , resid_whole_zone = check_regression ( p , masked_signal , masked_signal_whole_zone , masked_rng , masked_rng_whole_zone , n )
+    poly , resid , resid_whole_zone = get_regression_residuals ( p , masked_signal , masked_signal_whole_zone , masked_rng , masked_rng_whole_zone , n )
     
     overlap_corr_factor , ovp_fc , valmax = make_ovp_fc ( signal_all , p , ov , rng , top_mask , config )  
     
@@ -458,7 +458,7 @@ def find_savgol_slope ( ovp_fc , rng , top_mask,  config ) :
     
     index_range_stop_correction = np.argmax ( top_mask , axis = 0 ) - 1
     
-    condition3 = _check_condtions_3 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) 
+    condition3 = _check_conditions_3 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) 
     
     return val_min_slope , index_min_slope , condition3
 
@@ -675,7 +675,7 @@ def _check_conditions_2 ( relgradmagn  , config ) :
     
     return relgrad_max , relgrad_mean , condition2
 
-def _check_condtions_3 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) :
+def _check_conditions_3 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) :
        
     val_min_slope = np.ma.masked_invalid ( val_min_slope ) 
     
