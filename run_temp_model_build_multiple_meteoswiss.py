@@ -108,8 +108,8 @@ if __name__ == "__main__" :
     list_wigos = os.listdir(daily_dir)
     #list_wigos = ["0-20000-0-06215"]
 
-    ov_ref = 'TUB120011_20121112_1024.cfg'
-    config = 'config.txt'
+    ov_ref = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/TUB120011_20121112_1024.cfg'
+    config = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/config.txt'
 
     for wigos in list_wigos :
         try:

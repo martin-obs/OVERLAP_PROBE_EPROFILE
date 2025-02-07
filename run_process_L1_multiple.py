@@ -47,16 +47,16 @@ if __name__ == "__main__" :
     list_wigos = df ['WIGOS ID'][ df ['Instrument type'] == 'CHM15k' ].values
     list_id = df ['Identifier'][ df ['Instrument type'] == 'CHM15k' ].values
 
-    ov_ref = 'TUB120011_20121112_1024.cfg'
-    config = 'config.txt'
+    ov_ref = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/TUB120011_20121112_1024.cfg'
+    config = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/config.txt'
 
     l1_dir = '/data/zue/E_PROFILE/ALC/L1_FILES'
-    output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS/'
+    output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS_DEV/'
 
     time_to_apply = (datetime.today() - timedelta(days = 1)).date()
-    year = time_to_apply.year
-    month =  time_to_apply.month
-    day = time_to_apply.day
+    year = str ( time_to_apply ) [:4]
+    month = str ( time_to_apply ) [5:7]
+    day = str ( time_to_apply ) [8:10]
     
     for wigos, id in zip(list_wigos, list_id) :
         try : 
