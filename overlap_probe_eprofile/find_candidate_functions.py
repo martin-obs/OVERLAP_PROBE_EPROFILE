@@ -336,7 +336,7 @@ def check_monotonic ( ovp_fc , rng , top_mask,  config , condition3 ) :
         
         index_range_stop_correction = np.argmax ( top_mask , axis = 0 ) - 1
         
-        condition4 = _check_condtions_4 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) 
+        condition4 = _check_conditions_4 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) 
         
         return val_min_slope , index_min_slope , condition4  
    
@@ -561,7 +561,7 @@ def _check_conditions_3 ( relgradmagn  , config ) :
        
     return relgrad_max , relgrad_mean , condition3
 
-def _check_condtions_4 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) :
+def _check_conditions_4 ( val_min_slope , index_min_slope , index_range_stop_correction , config ) :
        
     val_min_slope = np.ma.masked_invalid ( val_min_slope ) 
     
