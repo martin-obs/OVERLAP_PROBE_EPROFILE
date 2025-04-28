@@ -20,7 +20,6 @@ ref_ov = 'TUB120011_20121112_1024.cfg'
 
 TM = btm.Temperature_model_builder ( '2021/01/01' , '2022/12/30' , ref_ov ,  path_to_csvs  , config )
 
-
 TM.check_dates_available ( )
 
 TM.get_last_optical_module ( )

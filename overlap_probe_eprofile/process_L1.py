@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 
 """Class to hold processing tools for CHM15k ceilometer data. The Class methods 
-   are used to read in a CHM15k data file, prepare it for processing
+   are used to read in a single CHM15k data file, prepare it for processing
    and then loop over defined time windows applying various checks contained in
    overlap_probe_eprofile.pre_checks, overlap_probe_eprofile.process_checks, and
    overlap_probe_eprofile.sort_samples
@@ -34,6 +34,9 @@ import pandas as pd
 from scipy import stats
 from scipy.interpolate import interpn
 import os
+import traceback
+import pyfiglet
+from termcolor import colored
 
 import overlap_probe_eprofile.find_fitting_windows as ffw
 import overlap_probe_eprofile.find_candidate_functions as fcf
@@ -561,10 +564,126 @@ class Eprofile_Reader ( object ) :
         
         self.passed_inds = fs.do_sort_checks ( results , self.dt , self.rng , self.rcs_0 , self.ov , self.config )
 
+#Entry point#
 
+NAME = "OVERLAP PROBE EPROFILE"
 
+__version__ = "1.0.0"
+
+def welcome_msg():
+    """
+    print a welcome message in the terminal (Try EU colours!)
+
+    """
+    ascii_art1 = pyfiglet.figlet_format ( "OVERLAP" )
+    
+    ascii_art2 = pyfiglet.figlet_format( "PROBE" )
+    
+    ascii_art3 = pyfiglet.figlet_format ( "E-PROFILE" )
+    
+    print(r"")
+    print(colored("---------------------------------------------------", 'yellow'))
+    print(NAME)
+    print(r"")
+    print(colored(ascii_art1, 'blue'))
+    print(colored(ascii_art2, 'yellow'))
+    print(colored(ascii_art3, 'blue'))
+    print(r"version: " + __version__)
+    print(r"MeteoSwiss , Met Office, PROBE Cost Action CA18235 ")
+    print(colored("---------------------------------------------------", 'yellow'))
+    print(r"")
+
+    return None#
+
+def daily_processing (data_file , config , ov_ref , save_path ) :
+    
+    try :            
+        
+        L1 = Eprofile_Reader ( data_file )
+        
+        L1.get_constants ( config , ov_ref )
+        
+        L1.create_time ( )
+        
+        L1.fill_gaps ( ) 
+        
+        L1.loop_over_time ( start = 0 )
+        
+        L1.get_final_overlapfunction ( save_path  )
+    
+    except Exception: 
+        
+        print ('passing ', data_file [-11:-3 ] )
+        
+        traceback.print_exc()
+        
+        pass    
+    
+    
+def process_L1 ( input_data  , config , ov_ref , save_path ) :
+    
+    welcome_msg()
+    
+    if os.path.isdir(input_data) :
+    
+        file_list = get_list_of_data_files ( input_data ) 
+        
+        for data_file in file_list :
+            
+            print ('Working on ' , data_file [ -11 : -3 ] )
+        
+            daily_processing (data_file , config , ov_ref , save_path )
+            
+    else :
+        
+        print ('Working on ' , input_data [ -11 : -3 ] )
+    
+        daily_processing ( input_data , config , ov_ref , save_path )
         
 
+def get_list_of_data_files (base_path) :
+    
+    file_list = []
+    
+    for root, dirs, files in os.walk(base_path, topdown=False):
+        
+       for name in files:
+           
+          file_list.append(os.path.join(root, name))
+
+    return np.sort (  file_list )    
+
+def do_daily_processing ():
+    
+    """ Processing entry point
+
+    Example usage when installed in a virtualenv (see also setup.py):
+
+        L1_CHM15k_daily -i <inputfilelist> -o <output_directory> -c <configurations_file -f <ref_overlap> 
+    """
+    
+    import argparse
+    parser = argparse.ArgumentParser(description='Overlap Porbe Eprofile CHM15k daily corrected overlap')
+    parser.add_argument('-i', '--input_file', help='L1 eprofile CHM15k netCDF file', required=False)
+    parser.add_argument('-d', '--input_file_directory', help='directory containing L1 eprofile CHM15k netCDF files', required=False)
+    parser.add_argument('-c', '--configuration_file', help='File contianing fornatted settings and thresholds', required=True)
+    parser.add_argument('-f', '--reference_overlap', help='reference overlap function', required=True)
+    parser.add_argument('-o', '--output_directory', help='path to output directory', required=True)
+
+    args = parser.parse_args()
+    
+    if args.input_file_directory :
+    
+        input_data = args.input_file_directory
+        
+    else :
+        
+        input_data = args.input_file
+    
+    process_L1 ( input_data , args.configuration_file , args.reference_overlap , args.output_directory )
 
 
 
+    
+    
+    
