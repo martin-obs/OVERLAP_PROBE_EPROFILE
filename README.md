@@ -39,9 +39,9 @@ Step 1
 ------
 Command line entry point is:
 
-L1_CHM15k_daily -i {data file or data directory} -c {config file} -f {reference overlap} -o {output file}
+L1_CHM15k_daily -i <data file or data directory> -c <config file> -f <reference overlap> -o <output file>
 
-Alternatively 'process_L1_example.py' shows how the entry point module can be omprted and called from a python script.
+Alternatively 'process_L1_example.py' shows how the entry point module can be imported and called from a python script.
 
 One year of L1 files will take around 5 hours to process and the results will be a csv file for each day for which at least one successful 
 overlap sample was found. 
