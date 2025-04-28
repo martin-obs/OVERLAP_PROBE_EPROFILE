@@ -39,7 +39,7 @@ Step 1
 ------
 Command line entry point is:
 
-L1_CHM15k_daily -i <data file or data directory> -c <config file> -f <reference overlap> -o <output file>
+L1_CHM15k_daily -i data file or data directory -c config file -f reference overlap -o output file
 
 Alternatively 'process_L1_example.py' shows how the entry point module can be imported and called from a python script.
 
