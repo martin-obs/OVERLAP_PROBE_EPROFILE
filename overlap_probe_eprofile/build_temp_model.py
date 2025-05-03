@@ -274,16 +274,11 @@ class Temperature_model_builder ( object ) :
    
     def _create_daly_median ( self , df ) :
 
-        print ( "CHECK MEDIAN OF DAILY FUNCTION" )
         
         ov = np.median ( np.asarray ( df.iloc [ : , 6: ] ) , axis = 0 )
-
-        print ( ov [ : 15 ] ) 
-        
+       
         t = np.median ( np.asarray ( df.iloc [ : , 4 ] ) )
 
-        print ( t )
-        
         if len (ov) != len (self.ov_native_rng) :
             
             rng_this_file = np.asarray ( df.columns.tolist() [ 6 : ] , dtype = 'float')
@@ -300,14 +295,11 @@ class Temperature_model_builder ( object ) :
             self.relative_difference =  ( self.ref_ov - self.daily_ovs ) / self.daily_ovs
                
     def do_regression_1 ( self ):
-        
-        print ("DO REGRESSION 1")
 
         self._make_regression_signals_1 ( )
                     
         self.alpha_1 , self.beta_1 , self.r2_1 = self._simple_linear_fit ( self.n_1 , self.A_1  , self.sum_rel_diff , axis = 0 )   
 
-        print ( self.alpha_1, self.beta_1, self.r2_1 )
                    
     def _make_regression_signals_1 ( self ) :
         
@@ -331,16 +323,12 @@ class Temperature_model_builder ( object ) :
         
     
     def choose_n_check_r2_diff_window ( self ) :
-        
-        #print (self.r2_1)
 
         self.diff_r2 = np.ma.diff ( self.r2_1 )
 
         self.diff_r2 [ 0 ] = 0
         
         self.bool_run_len = list ( mit.run_length.encode ( abs ( self.diff_r2 )  < self.config ['thrsh_diff_r2'].values [ 0 ] ) )
-
-        #print (self.bool_run_len)
 
         max_true_count = -1
         
