@@ -13,7 +13,7 @@ Translation work was undertaken at the UK Met Office and Meteoswiss as part of t
 Creating a virtualenv
 ----------------------------
 
-To use the code please create a Python virtual environment and then install this package using pip. 
+To use the code please clone and install into virtual Python environment using pip. 
 
 To create a virtual environment:
 
