@@ -37,16 +37,23 @@ After installation:
 
 Step 1
 ------
-Command line entry point is:
+Command line entry point top process E-Profile CHM15k L1 files is:
 
 L1_CHM15k_daily -i data file or data directory -c config file -f reference overlap -o output file
 
 Alternatively 'process_L1_example.py' shows how the entry point module can be imported and called from a python script.
+
+If a directory is passes instead of a single file name, all L1 files in that directory will be processed
 
 One year of L1 files will take around 5 hours to process and the results will be a csv file for each day for which at least one successful 
 overlap sample was found. 
 
 Step2
 ------
-Users should then use "run_temp_model_build.py" as the basis for a wrapper script to select the directory and date range for the csv files resulting from step 1 they
-wish to use in calculating a temperature model. The result is a netCDF file containg the temperature model, the reference overlap function used, and associated meta data. 
+Command line entry point to build a temperature model using the results from step 1 is:
+
+CHM15k_temperature_model -s start_date -e end_date -f reference_overlap -i path_to_csvs -c config_file -o output_directory -p plot -w write_to_file
+
+Alternatively 'make_temperature_model_example.py' shows how the entry point module can be imported and called from a python script.
+
+The result is a netCDF file containg the temperature model (for the latest optical module only)
