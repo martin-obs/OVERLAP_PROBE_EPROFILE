@@ -653,7 +653,7 @@ def get_list_of_data_files (base_path) :
 
     return np.sort (  file_list )    
 
-def do_daily_processing ():
+def L1_CHM15k_daily ():
     
     """ Processing entry point
 
@@ -664,23 +664,14 @@ def do_daily_processing ():
     
     import argparse
     parser = argparse.ArgumentParser(description='Overlap Porbe Eprofile CHM15k daily corrected overlap')
-    parser.add_argument('-i', '--input_file', help='L1 eprofile CHM15k netCDF file', required=False)
-    parser.add_argument('-d', '--input_file_directory', help='directory containing L1 eprofile CHM15k netCDF files', required=False)
+    parser.add_argument('-i', '--input_data', help='L1 eprofile CHM15k netCDF file or directory', required=True)
     parser.add_argument('-c', '--configuration_file', help='File contianing fornatted settings and thresholds', required=True)
     parser.add_argument('-f', '--reference_overlap', help='reference overlap function', required=True)
     parser.add_argument('-o', '--output_directory', help='path to output directory', required=True)
 
     args = parser.parse_args()
     
-    if args.input_file_directory :
-    
-        input_data = args.input_file_directory
-        
-    else :
-        
-        input_data = args.input_file
-    
-    process_L1 ( input_data , args.configuration_file , args.reference_overlap , args.output_directory )
+    process_L1 ( args.input_data , args.configuration_file , args.reference_overlap , args.output_directory )
 
 
 

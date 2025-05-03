@@ -47,7 +47,8 @@ setup(
     url = "https://github.com/martin-obs/OVERLAP_PROBE_EPROFILE",
     packages = find_packages(),
     entry_points = {
-    'console_scripts': [ 'L1_CHM15k_daily=overlap_probe_eprofile.process_L1:do_daily_processing' ]},
+    'console_scripts': [ 'L1_CHM15k_daily=overlap_probe_eprofile.process_L1:L1_CHM15k_daily',
+                        'CHM15k_temperature_model=overlap_probe_eprofile.build_temp_model:CHM15k_temperature_model']},
     install_requires=['numpy',
                       'netCDF4',
                       'scipy',

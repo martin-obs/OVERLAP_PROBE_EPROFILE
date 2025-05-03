@@ -17,13 +17,13 @@
 import numpy as np
 import datetime
 import pandas as pd
-from collections import Counter
 import os
 import sys
-import re
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import more_itertools as mit
+
+import overlap_probe_eprofile.overlap_utils as w2nc
 
 #-------------------------------------------------------------------------------
 
@@ -430,7 +430,31 @@ class Temperature_model_builder ( object ) :
             
             self._check_for_artefacts ( )
             
-        print ('Success! Writing temperature model to file')    
+        print ('Success!')    
+        
+    def do_final_checks ( self ) :
+        
+        if self.alpha_2.mask.any ( ) :
+            
+            print ('MASKED VALUES')
+            
+            err1 =  'Warning - there are masked values in regression 2 for ' +  self.site_location + ' ' + \
+            self.wigos_station_id + ' ' + self.instrument_id + ' ' + self.opt_mod_number 
+            
+            err2 =  '. Temperature model will not be created'
+            
+            sys.exit ( err1 + err2 )
+            
+        if np.isnan(self.alpha_2).any():
+            
+            print ('Warning - there are NaNs in regression 2 for ', self.site_location , self.wigos_station_id , self.instrument_id, self.opt_mod_number )
+                      
+        if len ( self.relative_difference ) <= 15 :
+
+            err3 = 'Warning - len relative_differece is only ' + str ( len ( self.relative_difference) ) + '. Temperature model will not be created'
+            
+            sys.exit ( err3 ) 
+        
     
     def plot_regression_1 ( self ) :
         
@@ -521,9 +545,80 @@ class Temperature_model_builder ( object ) :
         r2 = ( ( n * Sxy - Sx * Sy  ) ** 2 )  / ( ( n * Sxx - Sx **2 ) * ( n * Syy - Sy **2  ) )
               
         return  alpha , beta , r2        
+    
+    
+#entry point#
+
+def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  path_for_result , plot = False , write = True ) :
+    
+    TM = Temperature_model_builder ( start , end , ref_ov ,  path_to_csvs  , config )
+    
+    TM.plot = plot
+    
+    TM.write = write
+    
+    TM.check_dates_available ( )
+    
+    TM.get_last_optical_module ( )
+    
+    TM.get_meta_data_from_first_file ( )
+    
+    TM.check_resolution_n_get_range ( )
+    
+    TM.get_daily_medians ( )
+    
+    TM.get_relative_diff ( )
+    
+    TM.do_regression_1 ( )
+    
+    TM.choose_n_check_r2_diff_window ( )
+    
+    TM.do_regression_2 ( )
+    
+    TM.do_final_checks ( )
+    
+    if TM.plot :
+    
+        TM.plot_regression_1 ( )
         
+        TM.plot_regression_2 ( )
         
+    if TM.write :
+    
+        w2nc.write_temp_model_to_netcdf ( path_for_result , TM )
         
+def CHM15k_temperature_model (): 
+    
+    """ Processing entry point
+
+    Example usage when installed in a virtualenv (see also setup.py):
+
+        CHM15k_temperature_model -s start_date -e end_date -f reference_overlap -i path_to_csvs -c config_file 
+                
+                                    -o output_directory -p plot -w write_to_file
+    """
+    
+    import argparse
+    parser = argparse.ArgumentParser(description='Overlap Porbe Eprofile CHM15k daily corrected overlap')
+    parser.add_argument('-s', '--start_date', help='L1 eprofile CHM15k netCDF file', required=False)
+    parser.add_argument('-e', '--end_date', help='directory containing L1 eprofile CHM15k netCDF files', required=False)
+    parser.add_argument('-f', '--reference_overlap', help='reference overlap function', required=True)
+    parser.add_argument('-i', '--path_to_csvs', help='path_to_csvs files containing corrected overlap functions', required=True)
+    parser.add_argument('-c', '--configuration_file', help='File contianing fornatted settings and thresholds', required=True)
+    parser.add_argument('-o', '--output_directory', help='path to output directory', required=True)
+    parser.add_argument('-p', '--make_plots', help='make plots or not', required=False, default = False)
+    parser.add_argument('-w', '--write_to_file', help='path to output directory', required=False, default = True)
+
+    args = parser.parse_args()
+    
+    make_temperature_model ( args.start_date ,
+                            args.end_date ,
+                            args.reference_overlap ,
+                            args.path_to_csvs ,
+                            args.configuration_file ,
+                            args.output_directory ,
+                            args.make_plots,
+                            args.write_to_file ) 
 
         
   

@@ -179,6 +179,8 @@ def create_results_df ( rng , p , poly , resid , resid_whole_zone , ov , ovp_fc 
        
 
     """
+
+    
     columns = ['rng_start' ,
                'rng_end' ,
                'fit_length' ,
@@ -289,12 +291,16 @@ def write_temp_model_to_netcdf ( path_for_results , obj ) :
     if not os.path.exists( path_for_results ) :
         
         os.mkdir ( path_for_results )
-    
-    elif os.path.isfile ( path_for_results + nc_name ) :  
         
-        os.remove ( path_for_results + nc_name )
+    path_for_results = os.path.join ( path_for_results , nc_name )
+    
+    print ('Writing temperature model to ' , path_for_results )
+    
+    if os.path.isfile ( path_for_results ) :  
+        
+        os.remove ( path_for_results )
                   
-    ncfile = nc.Dataset ( path_for_results + nc_name , mode='w' , format = 'NETCDF4_CLASSIC' ) 
+    ncfile = nc.Dataset ( path_for_results , mode='w' , format = 'NETCDF4_CLASSIC' ) 
    
     ncfile.site_location = obj.site_location
 
