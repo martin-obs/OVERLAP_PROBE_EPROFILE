@@ -1,11 +1,7 @@
-import overlap_probe_eprofile.process_L1 as pro
-import os
-import numpy as np
-import time
-import traceback
 import pandas as pd
 from datetime import datetime, timedelta
 
+from overlap_probe_eprofile.process_L1 import process_L1
 
 def run_process_L1(f, save_path, ov_ref, config):
     print ( f"====== Processing file {f} =======" )
@@ -13,34 +9,10 @@ def run_process_L1(f, save_path, ov_ref, config):
     #total_start_time = time.time ( )
                     
     print ('working on ' , f [ -11 : -3 ] )
-                
-    start_time = time.time()
 
-    try :            
-        
-        L1 = pro.Eprofile_Reader ( f )
-        
-        L1.get_constants ( config , ov_ref )
-        
-        L1.create_time ( )
-        
-        L1.fill_gaps ( ) 
-        
-        L1.loop_over_time ( start = 0 )
-        
-        L1.get_final_overlapfunction ( save_path )
-
-    except Exception: 
-        
-        print ('passing ', f [-11:-3 ] )
-        
-        traceback.print_exc()
-        
-        pass
-
-    print ("--- %s seconds ---" % ( time.time ( ) - start_time ) )
-                
-    #print ("--- %s Total for year seconds ---" % ( time.time ( ) - total_start_time ) )
+    
+    process_L1 ( f , config , ov_ref , save_path )
+                                 
 
 if __name__ == "__main__" :
     df = pd.read_excel ('/proj/pay/E-PROFILE/Instruments_list.xlsx')
