@@ -1,12 +1,14 @@
 # OVERLAP PROBE EPROFILE
 
-Top level python package OVERLAP_PROBE_EPROFILE which provides code to correct the overlap functions for CHM15K ceilometers. 
+A Python package which provides code to correct the overlap functions of CHM15K ceilometers for temperature effects. 
 
-This code is a translation and refactoring of Matlab code written by Maxime Hervo, Rolf Ruefenacht and Melania Van Hove.
+This code is a translation and refactoring of Matlab code written by Maxime Hervo, Yann Poltera, Rolf Ruefenacht and Melania Van Hove in Matlab.
 
-The code will take EPROFILE L1 CHM15K data files and calculate coeficients that can be used to create an overlap function to correct for temperature effects. 
+The code takes in EPROFILE formatted L1 CHM15K data files and calculate coeficients that can be used to correct overlap functions for temperature effects. 
 It is based on the techniques presented in: Hervo, M., Poltera, Y. and Haefele, A. (2016) An empirical method to correct for temperature dependent variations in the 
 overlap function of CHM15k ceilometers. Atmospheric Measurement Techniques, 7, 2947– 2959. https://doi.org/10.5194/amt-9-2947-2016.
+
+Translation work was undertaken at the UK Met Office and Meteoswiss as part of the E-Profile programme and the PROBE Cost Action CA18235
 
 Creating a virtualenv
 ----------------------------
@@ -37,7 +39,7 @@ After installation:
 
 Step 1
 ------
-Command line entry point top process E-Profile CHM15k L1 files is:
+Command line entry point to process E-Profile CHM15k L1 files is:
 
 L1_CHM15k_daily -i data file or data directory -c config file -f reference overlap -o output file
 
