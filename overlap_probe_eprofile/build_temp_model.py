@@ -453,7 +453,7 @@ class Temperature_model_builder ( object ) :
             
             err2 =  '. Temperature model will not be created'
             
-            sys.exit ( err1 + err2 )
+            raise ValueError ( err1 + err2 )
             
         if np.isnan(self.alpha_2).any():
             
@@ -463,7 +463,7 @@ class Temperature_model_builder ( object ) :
 
             err3 = 'Warning - len relative_differece is only ' + str ( len ( self.relative_difference) ) + '. Temperature model will not be created'
             
-            sys.exit ( err3 ) 
+            raise ValueError ( err3 ) 
         
     
     def plot_regression_1 ( self, path_for_result) :
