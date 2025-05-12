@@ -306,7 +306,7 @@ def write_temp_model_to_netcdf ( path_for_results , obj ) :
    
     ncfile.site_location = obj.site_location
 
-    ncfile.insturment_id = obj.instrument_id
+    ncfile.instrument_id = obj.instrument_id
     
     ncfile.wigos_station_id = obj.wigos_station_id 
 
