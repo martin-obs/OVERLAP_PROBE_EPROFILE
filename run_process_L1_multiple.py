@@ -3,17 +3,6 @@ from datetime import datetime, timedelta
 
 from overlap_probe_eprofile.process_L1 import process_L1
 
-def run_process_L1(f, save_path, ov_ref, config):
-    print ( f"====== Processing file {f} =======" )
-
-    #total_start_time = time.time ( )
-                    
-    print ('working on ' , f [ -11 : -3 ] )
-
-    
-    process_L1 ( f , config , ov_ref , save_path )
-                                 
-
 if __name__ == "__main__" :
     df = pd.read_excel ('/proj/pay/E-PROFILE/Instruments_list.xlsx')
     list_wigos = df ['WIGOS ID'][ df ['Instrument type'] == 'CHM15k' ].values
@@ -34,7 +23,8 @@ if __name__ == "__main__" :
         try : 
             input_file = f"{l1_dir}/{wigos}/{year}/{month}/L1_{wigos}_{id}{year}{month}{day}.nc"
             print(input_file)
-            run_process_L1(input_file, output_dir, ov_ref, config)               
+
+            process_L1 ( input_file, config , ov_ref , output_dir )
         except :
             print(f"Warning : Issue with file {input_file}") 
 	    
