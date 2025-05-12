@@ -466,7 +466,7 @@ class Temperature_model_builder ( object ) :
             sys.exit ( err3 ) 
         
     
-    def plot_regression_1 ( self ) :
+    def plot_regression_1 ( self, path_for_result) :
         
         params = {'legend.fontsize': 8,
     			  'axes.titlepad':10,
@@ -490,9 +490,10 @@ class Temperature_model_builder ( object ) :
         ax.tick_params(direction="in",which="both")
         ax.set_xlabel('Date')
         ax.set_ylabel('R$^2$ values')
-        fig.savefig('test.png',format='png', dpi=300)      
+        full_name = path_for_result + 'test_'+ self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number + '_test.png'
+        fig.savefig(full_name,format='png', dpi=300)      
                
-    def plot_regression_2 ( self ) :
+    def plot_regression_2 ( self, path_for_result ) :
         
         params = {'legend.fontsize': 8,
     			  'axes.titlepad':10,
@@ -516,7 +517,8 @@ class Temperature_model_builder ( object ) :
         ax.set_ylabel('Range [m]')
         ax.set_ylim ( [ 0 , 700 ])
         ax.set_xlim ( [ -4 , 4 ])
-        fig.savefig('test_alpha.png',format='png', dpi=300)
+        full_name = path_for_result + 'test_'+ self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number + '_test_alpha.png'
+        fig.savefig(full_name, format='png', dpi=300)
         
     def _simple_linear_fit ( self , n , x , y , axis ) :
         
