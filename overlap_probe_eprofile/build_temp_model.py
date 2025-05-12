@@ -154,7 +154,7 @@ class Temperature_model_builder ( object ) :
         
         date_changed = [  d.strftime('%d/%m/%Y') for d in  self.available_dts [ changes ] ]
         
-        if len(changes) > 1 :
+        if len(changes) > 0 :
             
             print ( str (len(changes)) , 'changes in optical module found within date range. Optical module changed on ')
                    
@@ -169,11 +169,13 @@ class Temperature_model_builder ( object ) :
             self.available_files =  self.all_available_files [ changes [ -1 ] : ]             
             
             self.available_dts = self.all_available_dts [ changes [ -1 ]  : ]
+            
+            self.opt_mod_number = op_mods [ -1 ]
 
         else :
              
             print ('One optical module found within date range. Attempting to create temperature model for module' , op_mods [ -1 ] )
-                   
+                       
     def get_meta_data_from_first_file ( self ) :
             
             with open ( self.path_to_csvs + self.available_files [ 0 ] , 'r+' ) as f :
@@ -515,8 +517,6 @@ class Temperature_model_builder ( object ) :
         ax.set_ylim ( [ 0 , 700 ])
         ax.set_xlim ( [ -4 , 4 ])
         fig.savefig('test_alpha.png',format='png', dpi=300)
-
-
         
     def _simple_linear_fit ( self , n , x , y , axis ) :
         
@@ -566,10 +566,10 @@ def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  pat
     TM.write = write
     
     TM.check_dates_available ( )
+         
+    TM.get_meta_data_from_first_file ( )
     
     TM.get_last_optical_module ( )
-    
-    TM.get_meta_data_from_first_file ( )
     
     TM.check_resolution_n_get_range ( )
     
@@ -587,9 +587,9 @@ def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  pat
     
     if TM.plot :
     
-        TM.plot_regression_1 ( )
+        TM.plot_regression_1 ( path_for_result )
         
-        TM.plot_regression_2 ( )
+        TM.plot_regression_2 ( path_for_result )
         
     if TM.write :
     
