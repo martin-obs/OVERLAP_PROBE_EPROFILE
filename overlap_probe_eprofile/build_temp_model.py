@@ -266,12 +266,17 @@ class Temperature_model_builder ( object ) :
                 day_temp.append ( t )
                 
                 plt_date.append ( d )
-            
-        self.daily_ovs = day_ov [ 1 : , : ]
+                
+        if len(day_temp)>0:
+            self.daily_ovs = day_ov [ 1 : , : ]
 
-        self.daily_temp = np.asarray ( day_temp ) [ : ]
+            self.daily_temp = np.asarray ( day_temp ) [ : ]
         
-        self.plt_dates = plt_date [ : ]
+            self.plt_dates = plt_date [ : ]
+            
+        else:
+            print('Not enough daily functions !')
+            self.daily_ovs = []
    
     def _create_daly_median ( self , df ) :
 
@@ -430,7 +435,12 @@ class Temperature_model_builder ( object ) :
         while self.artefact :
             
             self.end_ind = self.end_ind - 1
-
+            
+            if self.end_ind == 0:
+                print('Warning, too many aberrant coefficients, regression failed !')
+                self.number_samples_flag = False
+                return
+            
             self._make_regresions_signals_2 ( )
             
             self.alpha_2 , self.beta_2 , self.r2_2 = self._simple_linear_fit ( self.n_2 , self.A_2 , self.B_2 , axis = 0 )
@@ -452,7 +462,8 @@ class Temperature_model_builder ( object ) :
             
             err2 =  '. Temperature model will not be created'
             
-            raise ValueError ( err1 + err2 )
+            print ( err1 + err2 )
+            self.number_samples_flag = False
             
         if np.isnan(self.alpha_2).any():
             
@@ -462,7 +473,8 @@ class Temperature_model_builder ( object ) :
 
             err3 = 'Warning - len relative_differece is only ' + str ( len ( self.relative_difference) ) + '. Temperature model will not be created'
             
-            raise ValueError ( err3 ) 
+            print ( err3 ) 
+            self.number_samples_flag = False
         
     
     def plot_regression_1 ( self, path_for_result) :
@@ -558,7 +570,7 @@ class Temperature_model_builder ( object ) :
     
 #entry point#
 
-def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  path_for_result , plot = False , write = True ) :
+def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  path_for_result , plot = False , write = True , generate_dummy_if_fail = False) :
     
     TM = Temperature_model_builder ( start , end , ref_ov ,  path_to_csvs  , config )
     
@@ -576,24 +588,31 @@ def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  pat
     
     TM.get_daily_medians ( )
     
-    TM.get_relative_diff ( )
+    if len(TM.daily_ovs)>0:
+        TM.get_relative_diff ( )
     
-    TM.do_regression_1 ( )
+        TM.do_regression_1 ( )
     
-    TM.choose_n_check_r2_diff_window ( )
+        TM.choose_n_check_r2_diff_window ( )
     
-    TM.do_regression_2 ( )
+        TM.do_regression_2 ( )
     
-    TM.do_final_checks ( )
+        TM.do_final_checks ( )
     
-    if TM.plot :
-    
+    if TM.plot and TM.number_samples_flag:
+
         TM.plot_regression_1 ( path_for_result )
-        
-        TM.plot_regression_2 ( path_for_result )
-        
-    if TM.write :
     
+        TM.plot_regression_2 ( path_for_result )
+    
+    if TM.write :
+        if not TM.number_samples_flag :
+            if generate_dummy_if_fail:
+                TM.alpha_2 = np.zeros_like ( TM.rng )
+                TM.beta_2 = np.zeros_like ( TM.rng )
+                TM.relative_difference =[]
+            else:
+                raise ValueError('No successful model generation for this instrument')
         w2nc.write_temp_model_to_netcdf ( path_for_result , TM )
         
 def CHM15k_temperature_model (): 

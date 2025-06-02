@@ -50,7 +50,7 @@ def compute_temp_model_for_all(daily_dir, wigos, output_dir, ov_ref, config):
     day = str ( time_to_apply ) [8:10]
     print ( f'{year}/{month}/{day}')
 
-    make_temperature_model ( '2021/01/01' , f'{year}/{month}/{day}' , ref_ov ,  path_to_csvs  , config , path_for_result , plot = True )
+    make_temperature_model ( '2021/01/01' , f'{year}/{month}/{day}' , ref_ov ,  path_to_csvs  , config , path_for_result , plot = True , write = True, generate_dummy_if_fail=True)
 
         
 if __name__ == "__main__" :
