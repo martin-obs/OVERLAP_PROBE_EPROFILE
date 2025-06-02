@@ -166,9 +166,10 @@ class Temperature_model_builder ( object ) :
             
             print ('To make model for earlier optical module adjust requested dates accordingly' )
             
-            self.available_files =  self.all_available_files [ changes [ -1 ] : ]             
+            self.available_files =  self.available_files [ changes [ -1 ] : ]   
             
-            self.available_dts = self.all_available_dts [ changes [ -1 ]  : ]
+            self.available_dts = self.available_dts [ changes [ -1 ]  : ]
+
 
         else :
              
