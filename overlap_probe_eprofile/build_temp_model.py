@@ -166,11 +166,10 @@ class Temperature_model_builder ( object ) :
             
             print ('To make model for earlier optical module adjust requested dates accordingly' )
             
-            self.available_files =  self.all_available_files [ changes [ -1 ] : ]             
+            self.available_files =  self.available_files [ changes [ -1 ] : ]   
             
-            self.available_dts = self.all_available_dts [ changes [ -1 ]  : ]
             
-            self.opt_mod_number = op_mods [ -1 ]
+            self.available_dts = self.available_dts [ changes [ -1 ]  : ]
 
         else :
              
@@ -568,10 +567,10 @@ def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  pat
     TM.write = write
     
     TM.check_dates_available ( )
-         
-    TM.get_meta_data_from_first_file ( )
     
     TM.get_last_optical_module ( )
+    
+    TM.get_meta_data_from_first_file ( )
     
     TM.check_resolution_n_get_range ( )
     
