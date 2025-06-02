@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime, timedelta
 
-from overlap_probe_eprofile.process_L1 import process_L1
+from overlap_probe_eprofile.process_L1 import daily_processing
 
 if __name__ == "__main__" :
     df = pd.read_excel ('/proj/pay/E-PROFILE/Instruments_list.xlsx')
@@ -24,7 +24,7 @@ if __name__ == "__main__" :
             input_file = f"{l1_dir}/{wigos}/{year}/{month}/L1_{wigos}_{id}{year}{month}{day}.nc"
             print(input_file)
 
-            process_L1 ( input_file, config , ov_ref , output_dir )
+            daily_processing ( input_file, config , ov_ref , output_dir )
         except :
-            print(f"Warning : Issue with file {input_file}") 
+            print(f"Warning : Issue with file {input_file}")
 	    
