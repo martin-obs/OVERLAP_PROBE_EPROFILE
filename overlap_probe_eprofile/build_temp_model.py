@@ -472,10 +472,18 @@ class Temperature_model_builder ( object ) :
         if len ( self.relative_difference ) <= 15 :
 
             err3 = 'Warning - len relative_differece is only ' + str ( len ( self.relative_difference) ) + '. Temperature model will not be created'
-            
+
             print ( err3 ) 
             self.number_samples_flag = False
+
+
+    def clip_where_ref_ov_is_small  ( self )  :
+
+        clip_threshold  = self.config [ 'clip_threshold' ].to_numpy()
         
+        self.alpha_2 [ np.where( self.ref_ov <= clip_threshold  ) ] = 0 
+        
+        self.beta_2 [ np.where( self.ref_ov <=  clip_threshold  ) ] = 0        
     
     def plot_regression_1 ( self, path_for_result) :
         
@@ -494,7 +502,9 @@ class Temperature_model_builder ( object ) :
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
         fig.set_size_inches(7,4)
         ax = plt.subplot(111)
-        ax.plot(self.plt_dates ,  self.r2_1 )
+        ax.set_title ( 'R$^2$ - ' + self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number )
+        ax.plot(self.plt_dates ,  self.r2_1 , 'k'  )
+        ax.plot(self.plt_dates ,  self.r2_1 , 'o' , color = 'r' , markersize = 3)
         date_format = DateFormatter('%d/%m')
         ax.xaxis.set_major_formatter(date_format) 
         ax.grid()
@@ -519,15 +529,31 @@ class Temperature_model_builder ( object ) :
     			  'xtick.minor.size': 3}
         plt.rcParams.update(params)
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
-        fig.set_size_inches(7,4)
-        ax = plt.subplot(111)
-        ax.plot( self.alpha_2 , self.rng , '-o')       
-        ax.grid()
-        ax.tick_params(direction="in",which="both")
-        ax.set_xlabel('alpha')
-        ax.set_ylabel('Range [m]')
-        ax.set_ylim ( [ 0 , 700 ])
-        ax.set_xlim ( [ -4 , 4 ])
+        fig.set_size_inches(5,4)
+        fig.suptitle ( self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number )
+        ax1 = plt.subplot(121)
+        #ax1.set_title ( 'Alpha - ' + self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number )
+        ax1.plot( self.alpha_2 , self.rng , color = 'k')
+        ax1.plot( self.alpha_2 , self.rng , 'o' , color = 'r' , markersize = 3)       
+        ax1.grid()
+        ax1.tick_params(direction="in",which="both")
+        ax1.set_xlabel('Alpha')
+        ax1.set_ylabel('Range [m]')
+        ax1.set_ylim ( [ 0 , 1000 ])
+        #ax1.set_xlim ( [ -4 , 4 ])
+        
+        ax2 = plt.subplot(122)
+        #ax2.set_title ( 'Beta - ' + self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number )
+        ax2.plot( self.beta_2 , self.rng , color = 'k')
+        ax2.plot( self.beta_2 , self.rng , 'o' , color = 'r' , markersize = 3)        
+        ax2.grid()
+        ax2.tick_params(direction="in",which="both")
+        ax2.set_xlabel('Beta')
+        ax2.set_ylim ( [ 0 , 1000 ])
+        ax2.set_yticklabels([])
+        #ax2.set_xlim ( [ -4 , 4 ])
+        
+        
         full_name = path_for_result + 'test_'+ self.wigos_station_id + '_' + self.instrument_id + '_' + self.opt_mod_number + '_test_alpha.png'
         fig.savefig(full_name, format='png', dpi=300)
         
@@ -598,13 +624,15 @@ def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  pat
         TM.do_regression_2 ( )
     
         TM.do_final_checks ( )
-    
+        
+        TM.clip_where_ref_ov_is_small ( )
+
     if TM.plot and TM.number_samples_flag:
 
         TM.plot_regression_1 ( path_for_result )
     
         TM.plot_regression_2 ( path_for_result )
-    
+
     if TM.write :
         if not TM.number_samples_flag :
             if generate_dummy_if_fail:
