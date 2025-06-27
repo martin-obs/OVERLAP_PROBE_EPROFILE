@@ -455,7 +455,14 @@ class Temperature_model_builder ( object ) :
             err3 = 'Warning - len relative_differece is only ' + str ( len ( self.relative_difference) ) + '. Temperature model will not be created'
             
             sys.exit ( err3 ) 
+
+    def clip_where_ref_ov_is_small  ( self )  :
         
+        clip_threshold  = self.config [ 'clip_threshold' ].to_numpy()
+        
+        self.alpha_2 [ np.where( self.ref_ov <= clip_threshold  ) ] = 0 
+        
+        self.beta_2 [ np.where( self.ref_ov <=  clip_threshold  ) ] = 0        
     
     def plot_regression_1 ( self ) :
         
@@ -577,6 +584,8 @@ def make_temperature_model ( start , end , ref_ov , path_to_csvs , config ,  pat
     TM.do_regression_2 ( )
     
     TM.do_final_checks ( )
+    
+    TM.clip_where_ref_ov_is_small ( )
     
     if TM.plot :
     
