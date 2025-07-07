@@ -37,7 +37,7 @@ def compute_temp_model_for_all(daily_dir, wigos, output_dir, ov_ref, config):
     path_to_csvs = f'{daily_dir}/{wigos}/'
     print (path_to_csvs)
 
-    path_for_result =output_dir
+    path_for_result = output_dir
     print (path_for_result)
 
     ref_ov = ov_ref
@@ -50,14 +50,24 @@ def compute_temp_model_for_all(daily_dir, wigos, output_dir, ov_ref, config):
     day = str ( time_to_apply ) [8:10]
     print ( f'{year}/{month}/{day}')
 
-    make_temperature_model ( '2021/01/01' , f'{year}/{month}/{day}' , ref_ov ,  path_to_csvs  , config , path_for_result , plot = True , write = True, generate_dummy_if_fail=True)
+    make_temperature_model ( '2021/01/01' , f'{year}/{month}/{day}' , ref_ov ,  path_to_csvs  , config , path_for_result , plot = True , write = True, generate_dummy_if_fail=False)
 
         
 if __name__ == "__main__" :
     daily_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS'
-    output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS/'
+    monthly_str = datetime.today().strftime('%Y%m')
+    output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS/' + monthly_str + '/'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    else:
+        print(f"Output directory {output_dir} already exists. Writing to alternative directory.")
+        random_suffix = datetime.now().strftime('%Y%m%d_%H%M')
+        output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS_DEV/' + random_suffix + '/'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            
     list_wigos = os.listdir(daily_dir)
-    #list_wigos = ["0-20000-0-06215"]
+    #list_wigos = ["0-20008-0-UGR"]
 
     ov_ref = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/TUB120011_20121112_1024.cfg'
     config = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/config.txt'

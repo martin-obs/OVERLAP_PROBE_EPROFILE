@@ -25,5 +25,5 @@ min_nb_good_samples_after_outliers_removal,20
 min_nb_samples_for_skipping_good_test,100
 thrsh_diff_r2,100
 number_samples,10
-clip_threshold,0.05
+clip_threshold,0.02
 
