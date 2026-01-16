@@ -4,7 +4,7 @@ A Python package which provides code to correct the overlap functions of CHM15K 
 
 This code is a translation and refactoring of Matlab code written by Maxime Hervo, Yann Poltera, Rolf Ruefenacht and Melania Van Hove in Matlab.
 
-The code takes in EPROFILE formatted L1 CHM15K data files and calculate coeficients that can be used to correct overlap functions for temperature effects. 
+The code takes in EPROFILE formatted L1 CHM15K data files and calculates coeficients that can be used to correct overlap functions for temperature effects. 
 It is based on the techniques presented in: Hervo, M., Poltera, Y. and Haefele, A. (2016) An empirical method to correct for temperature dependent variations in the 
 overlap function of CHM15k ceilometers. Atmospheric Measurement Techniques, 7, 2947– 2959. https://doi.org/10.5194/amt-9-2947-2016.
 
@@ -45,9 +45,9 @@ L1_CHM15k_daily -i data file or data directory -c config file -f reference overl
 
 Alternatively 'process_L1_example.py' shows how the entry point module can be imported and called from a python script.
 
-If a directory is passes instead of a single file name, all L1 files in that directory will be processed
+If a directory is passed instead of a single file name, all L1 files in that directory will be processed
 
-One year of L1 files will take around 5 hours to process and the results will be a csv file for each day for which at least one successful 
+One year of L1 files will take around 5 hours to process and the result will be a csv file for each day for which at least one successful 
 overlap sample was found. 
 
 Step2
