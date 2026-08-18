@@ -8,3 +8,4 @@ xarray
 pyfiglet
 termcolor
 more_itertools
+openpyxl
