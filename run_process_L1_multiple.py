@@ -11,8 +11,8 @@ if __name__ == "__main__" :
     ov_ref = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/TUB120011_20121112_1024.cfg'
     config = '/proj/pay/E-PROFILE/Overlap_codes/dev/OVERLAP_PROBE_EPROFILE/config.txt'
 
-    l1_dir = '/data/zue/E_PROFILE/ALC/L1_FILES'
-    output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS_DEV/'
+    l1_dir = '/product_data/data/zue/E_PROFILE/ALC/L1_FILES'
+    output_dir = '/product_data/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS_DEV/'
 
     time_to_apply = (datetime.today() - timedelta(days = 1)).date()
     year = str ( time_to_apply ) [:4]

@@ -54,15 +54,15 @@ def compute_temp_model_for_all(daily_dir, wigos, output_dir, ov_ref, config):
 
         
 if __name__ == "__main__" :
-    daily_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS'
+    daily_dir = '/product_data/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/DAILY_FUNCTIONS'
     monthly_str = datetime.today().strftime('%Y%m')
-    output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS/' + monthly_str + '/'
+    output_dir = '/product_data/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS/' + monthly_str + '/'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     else:
         print(f"Output directory {output_dir} already exists. Writing to alternative directory.")
         random_suffix = datetime.now().strftime('%Y%m%d_%H%M')
-        output_dir = '/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS_DEV/' + random_suffix + '/'
+        output_dir = '/product_data/data/pay/REM/ACQ/E_PROFILE_ALC/Overlap/TEMP_MODELS_DEV/' + random_suffix + '/'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
             

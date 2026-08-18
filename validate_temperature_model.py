@@ -91,7 +91,7 @@ def compare_overlap_functions(location, inst_id, path_temp_model1, path_temp_mod
         axs[1].set_xlabel('Relative difference')
         fig.suptitle(f"Comparison of overlap functions for {location}, {model1.attrs['wigos_station_id']}_{inst_id}")
         plt.tight_layout(rect=[0, 0.01, 0.99, 1])
-        fig.savefig(f"{outfolder}/{location}_{inst_id}_compare_overlap_functions.png", format='png')
+        fig.savefig(f"{outfolder}{location}_{inst_id}_compare_overlap_functions.png", format='png')
         plt.close(fig)
 
     
