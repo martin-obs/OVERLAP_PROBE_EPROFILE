@@ -53,11 +53,11 @@ setup(
                       'netCDF4',
                       'scipy',
                       'matplotlib',
-                      'datetime',
                       'pandas',
+                      'pytz',
+                      'xarray',
                       'pyfiglet',
                       'termcolor',
-                      'matplotlib',
                       'more_itertools',
                       ],
 )

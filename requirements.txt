@@ -1,1 +1,10 @@
-sphinx_rtd_theme
+numpy
+netCDF4
+scipy
+matplotlib
+pandas
+pytz
+xarray
+pyfiglet
+termcolor
+more_itertools
